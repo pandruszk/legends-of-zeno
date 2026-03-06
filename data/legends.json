@@ -1,0 +1,86 @@
+[
+  {
+    "id": "the-origin",
+    "title": "The Origin of Zeno",
+    "subtitle": "How a data hero rose from the depths of dashboards to bring the power of answers to all who seek them.",
+    "author": "Team Data",
+    "date": "2026-03-06",
+    "status": "published",
+    "slides": [
+      {
+        "type": "title",
+        "heading": "The Origin of Zeno",
+        "subheading": "How a data hero rose from the depths of dashboards to bring the power of answers to all who seek them."
+      },
+      {
+        "type": "narrative",
+        "text": "In the age before Zeno, the people of Breezeway wandered in darkness. They had <em>data</em> &mdash; mountains of it &mdash; but to unlock its secrets required arcane rituals: SQL incantations, dashboard quests, and weeks of waiting for the data priests to return with answers.<br><br>Then one day, <em>an oracle emerged</em>. You ask a question in plain English. Zeno translates it into a database query. And you get instant answers &mdash; in seconds, not days."
+      },
+      {
+        "type": "agents",
+        "heading": "The Three Temples",
+        "subheading": "Each temple holds different knowledge. Choose wisely.",
+        "agents": [
+          {
+            "name": "Ops Agent",
+            "icon": "\u2694",
+            "color": "gold",
+            "domain": "Tasks, work orders, scheduling, team management, payments, cleaning, maintenance",
+            "example": "What is the average task completion time for paid companies last month?"
+          },
+          {
+            "name": "Guest Experience",
+            "icon": "\u2605",
+            "color": "blue",
+            "domain": "Messaging, Assist AI, response times, guest reviews, guest guides, verification",
+            "example": "What percentage of messages are handled automatically by Assist AI?"
+          },
+          {
+            "name": "Integrations",
+            "icon": "\u2601",
+            "color": "green",
+            "domain": "Smart home devices, PMS integrations, public API, webhooks",
+            "example": "Which PMS partners have the most active connections?"
+          }
+        ]
+      },
+      {
+        "type": "tips",
+        "heading": "The Art of Asking",
+        "subheading": "A vague question gets a vague answer. Precision is the sword that cuts through fog.",
+        "tips": [
+          {
+            "icon": "\u23f1",
+            "title": "Always include a time range",
+            "text": "\"Last week,\" \"Q4 2025,\" \"the last 6 months\" \u2014 without a date, Zeno has to guess."
+          },
+          {
+            "icon": "\u2699",
+            "title": "Use specific metric names",
+            "text": "Say completion rate, response time, active homes \u2014 not vague terms like \"performance.\""
+          },
+          {
+            "icon": "\u270e",
+            "title": "One question at a time",
+            "text": "Ask three things, get a muddled answer. Ask one, get precision."
+          },
+          {
+            "icon": "\ud83d\udcac",
+            "title": "Build on your answers",
+            "text": "Follow up to drill deeper. \"Break that down by segment\" works great."
+          }
+        ]
+      },
+      {
+        "type": "cta",
+        "heading": "Begin Your Legend",
+        "subheading": "Zeno is in beta and available now.",
+        "steps": [
+          { "label": "I", "title": "Request Access", "text": "#project-zeno-beta on Slack" },
+          { "label": "II", "title": "Set Up Account", "text": "Snowflake login + MFA" },
+          { "label": "III", "title": "Start Asking", "text": "Pick an agent. Ask a question." }
+        ]
+      }
+    ]
+  }
+]
