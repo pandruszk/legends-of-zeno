@@ -615,60 +615,29 @@
 
   // ===== NARRATION =====
   let narrationMuted = false;
-  const synth = window.speechSynthesis;
+  let narrationAudio = null;
 
-  function stripHtml(html) {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || '';
+  function getAudioPath(legendId, slideIndex) {
+    return `audio/${legendId}-${slideIndex}.mp3`;
   }
 
-  function getSlideNarration(slide) {
-    switch (slide.type) {
-      case 'title':
-        return `${slide.heading}. ${slide.subheading}`;
-      case 'narrative':
-        return stripHtml(slide.text);
-      case 'agents':
-        return `${slide.heading}. ${slide.subheading}. ` +
-          slide.agents.map(a => `The ${a.name} covers ${a.domain}.`).join(' ');
-      case 'tips':
-        return `${slide.heading}. ${slide.subheading}. ` +
-          slide.tips.map(t => `${t.title}. ${t.text}`).join(' ');
-      case 'cta':
-        return `${slide.heading}. ${slide.subheading}. ` +
-          slide.steps.map(st => `Step ${st.label}: ${st.title}. ${st.text}.`).join(' ');
-      default:
-        return '';
-    }
-  }
-
-  function speakSlide(slide, onEnd) {
-    synth.cancel();
+  function speakSlide(legendId, slideIndex, onEnd) {
+    stopNarration();
     if (narrationMuted) { if (onEnd) setTimeout(onEnd, 6000); return; }
 
-    const text = getSlideNarration(slide);
-    if (!text) { if (onEnd) setTimeout(onEnd, 4000); return; }
-
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = 0.95;
-    utter.pitch = 0.9;
-
-    // Try to pick a good voice
-    const voices = synth.getVoices();
-    const preferred = voices.find(v => v.name.includes('Daniel')) ||
-                      voices.find(v => v.name.includes('Aaron')) ||
-                      voices.find(v => v.name.includes('Samantha')) ||
-                      voices.find(v => v.lang.startsWith('en') && v.localService);
-    if (preferred) utter.voice = preferred;
-
-    utter.onend = () => { if (onEnd) setTimeout(onEnd, 1500); };
-    utter.onerror = () => { if (onEnd) setTimeout(onEnd, 3000); };
-    synth.speak(utter);
+    const src = getAudioPath(legendId, slideIndex);
+    narrationAudio = new Audio(src);
+    narrationAudio.onended = () => { if (onEnd) setTimeout(onEnd, 1200); };
+    narrationAudio.onerror = () => { if (onEnd) setTimeout(onEnd, 5000); };
+    narrationAudio.play().catch(() => { if (onEnd) setTimeout(onEnd, 5000); });
   }
 
   function stopNarration() {
-    synth.cancel();
+    if (narrationAudio) {
+      narrationAudio.pause();
+      narrationAudio.currentTime = 0;
+      narrationAudio = null;
+    }
   }
 
   function toggleMute() {
@@ -676,12 +645,8 @@
     const btn = document.getElementById('viewer-mute');
     btn.textContent = narrationMuted ? '\u{1F507}' : '\u{1F50A}';
     btn.title = narrationMuted ? 'Unmute narration' : 'Mute narration';
-    if (narrationMuted) synth.cancel();
+    if (narrationMuted) stopNarration();
   }
-
-  // Preload voices
-  synth.getVoices();
-  if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = () => synth.getVoices();
 
   function viewerTogglePlay() {
     if (viewerPlaying) stopViewer(); else startViewer();
@@ -696,14 +661,19 @@
 
   function narrateAndAdvance() {
     if (!viewerPlaying) return;
-    const slide = viewerSlides[viewerCurrent];
-    const text = getSlideNarration(slide);
-    // Estimate duration: ~130 words per minute for speech, minimum 5s
-    const wordCount = text.split(/\s+/).length;
-    const estimatedMs = narrationMuted ? Math.max(5000, wordCount * 400) : Math.max(5000, (wordCount / 130) * 60000 + 1500);
-    runViewerProgress(estimatedMs);
 
-    speakSlide(slide, () => {
+    // Preload audio to get duration for progress bar
+    const src = getAudioPath(viewerLegendId, viewerCurrent);
+    const probe = new Audio(src);
+    probe.addEventListener('loadedmetadata', () => {
+      const durationMs = (probe.duration * 1000) + 1200;
+      runViewerProgress(durationMs);
+    });
+    probe.addEventListener('error', () => {
+      runViewerProgress(6000);
+    });
+
+    speakSlide(viewerLegendId, viewerCurrent, () => {
       if (!viewerPlaying) return;
       if (viewerCurrent < viewerSlides.length - 1) {
         viewerNext();
