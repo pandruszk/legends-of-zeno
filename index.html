@@ -779,16 +779,13 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  .animate-in {
+    opacity: 0;
+  }
+
   .slide.active .animate-in {
     animation: fadeInUp 0.6s ease forwards;
   }
-
-  .slide.active .animate-in:nth-child(1) { animation-delay: 0.1s; opacity: 0; }
-  .slide.active .animate-in:nth-child(2) { animation-delay: 0.2s; opacity: 0; }
-  .slide.active .animate-in:nth-child(3) { animation-delay: 0.3s; opacity: 0; }
-  .slide.active .animate-in:nth-child(4) { animation-delay: 0.4s; opacity: 0; }
-  .slide.active .animate-in:nth-child(5) { animation-delay: 0.5s; opacity: 0; }
-  .slide.active .animate-in:nth-child(6) { animation-delay: 0.6s; opacity: 0; }
 </style>
 </head>
 <body>
@@ -1263,13 +1260,24 @@
     dotsContainer.appendChild(dot);
   }
 
+  function staggerAnimations(slide) {
+    slide.querySelectorAll('.animate-in').forEach((el, i) => {
+      el.style.animationDelay = (0.1 + i * 0.1) + 's';
+    });
+  }
+
+  // Init first slide
+  staggerAnimations(slides[0]);
+
   function goToSlide(n) {
     if (n === current || n < 0 || n >= total) return;
-    slides[current].classList.remove('active');
-    slides[current].classList.add('exit');
-    setTimeout(() => slides[current].classList.remove('exit'), 600);
+    const prev = current;
+    slides[prev].classList.remove('active');
+    slides[prev].classList.add('exit');
+    setTimeout(() => slides[prev].classList.remove('exit'), 600);
 
     current = n;
+    staggerAnimations(slides[current]);
     slides[current].classList.add('active');
 
     // Update dots
