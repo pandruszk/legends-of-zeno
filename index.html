@@ -104,6 +104,24 @@
     color: var(--blue-deep);
   }
 
+  .nav button.playing {
+    background: var(--gold);
+    color: var(--blue-deep);
+  }
+
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    z-index: 200;
+    transition: width linear;
+    width: 0;
+  }
+
+  .progress-bar.hidden { display: none; }
+
   .slide-counter {
     font-family: 'Cinzel', serif;
     color: var(--gold);
@@ -791,6 +809,7 @@
 <body>
 
 <div class="key-hint"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> to navigate</div>
+<div class="progress-bar hidden" id="progressBar"></div>
 
 <div class="slide-deck" id="deck">
 
@@ -1240,6 +1259,7 @@
 <!-- Navigation -->
 <nav class="nav">
   <button id="prev" onclick="changeSlide(-1)">&larr;</button>
+  <button id="playBtn" onclick="toggleAutoplay()" title="Auto-play">&#9654;</button>
   <div class="progress-dots" id="dots"></div>
   <div class="slide-counter" id="counter">1 / 18</div>
   <button id="next" onclick="changeSlide(1)">&rarr;</button>
@@ -1299,6 +1319,54 @@
     if (e.key === 'Home') { e.preventDefault(); goToSlide(0); }
     if (e.key === 'End') { e.preventDefault(); goToSlide(total - 1); }
   });
+
+  // Autoplay
+  let autoplayTimer = null;
+  let playing = false;
+  const SLIDE_DURATION = 8000; // 8 seconds per slide
+  const playBtn = document.getElementById('playBtn');
+  const progressBar = document.getElementById('progressBar');
+
+  function startAutoplay() {
+    playing = true;
+    playBtn.innerHTML = '&#9646;&#9646;';
+    playBtn.classList.add('playing');
+    progressBar.classList.remove('hidden');
+    runProgressBar();
+    autoplayTimer = setInterval(() => {
+      if (current < total - 1) {
+        changeSlide(1);
+        runProgressBar();
+      } else {
+        stopAutoplay();
+      }
+    }, SLIDE_DURATION);
+  }
+
+  function stopAutoplay() {
+    playing = false;
+    clearInterval(autoplayTimer);
+    autoplayTimer = null;
+    playBtn.innerHTML = '&#9654;';
+    playBtn.classList.remove('playing');
+    progressBar.classList.add('hidden');
+    progressBar.style.width = '0';
+  }
+
+  function toggleAutoplay() {
+    if (playing) { stopAutoplay(); } else { startAutoplay(); }
+  }
+
+  function runProgressBar() {
+    progressBar.style.transition = 'none';
+    progressBar.style.width = '0';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        progressBar.style.transition = 'width ' + SLIDE_DURATION + 'ms linear';
+        progressBar.style.width = '100%';
+      });
+    });
+  }
 
   // Touch support
   let touchStartX = 0;
