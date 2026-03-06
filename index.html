@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Legends of Zeno</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #D4A843;
+    --gold-light: #F0D68A;
+    --gold-dark: #A07C2A;
+    --blue-deep: #0A1628;
+    --blue-mid: #152238;
+    --blue-accent: #3B82F6;
+    --red-cape: #C0392B;
+    --red-light: #E74C3C;
+    --white: #F8F6F0;
+    --gray: #9CA3AF;
+    --green: #10B981;
+    --purple: #8B5CF6;
+    --orange: #F59E0B;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--blue-deep);
+    color: var(--white);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* Slide System */
+  .slide-deck {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 80px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    transform: translateX(40px);
+    overflow: hidden;
+  }
+
+  .slide.active {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(0);
+  }
+
+  .slide.exit {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+
+  /* Navigation */
+  .nav {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 100;
+    background: rgba(10, 22, 40, 0.8);
+    backdrop-filter: blur(12px);
+    padding: 10px 24px;
+    border-radius: 40px;
+    border: 1px solid rgba(212, 168, 67, 0.2);
+  }
+
+  .nav button {
+    background: none;
+    border: 1px solid rgba(212, 168, 67, 0.3);
+    color: var(--gold);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+  }
+
+  .nav button:hover {
+    background: var(--gold);
+    color: var(--blue-deep);
+  }
+
+  .slide-counter {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: 2px;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  .progress-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .progress-dots .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(212, 168, 67, 0.2);
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .progress-dots .dot.active {
+    background: var(--gold);
+    box-shadow: 0 0 8px rgba(212, 168, 67, 0.5);
+  }
+
+  .progress-dots .dot.visited {
+    background: rgba(212, 168, 67, 0.5);
+  }
+
+  /* ========== SLIDE STYLES ========== */
+
+  /* Title Slide */
+  .slide-title {
+    background: linear-gradient(135deg, #070E1A 0%, #0F1D35 40%, #1A2744 100%);
+    text-align: center;
+    position: relative;
+  }
+
+  .slide-title::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 30%, rgba(212, 168, 67, 0.08) 0%, transparent 70%);
+  }
+
+  .title-hero-img {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: top;
+    border: 3px solid var(--gold);
+    box-shadow: 0 0 60px rgba(212, 168, 67, 0.3), 0 0 120px rgba(212, 168, 67, 0.1);
+    margin-bottom: 36px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .title-super {
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .title-main {
+    font-family: 'Cinzel', serif;
+    font-size: 72px;
+    font-weight: 900;
+    background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .title-sub {
+    font-family: 'Crimson Text', serif;
+    font-size: 24px;
+    font-style: italic;
+    color: rgba(248, 246, 240, 0.6);
+    max-width: 600px;
+    line-height: 1.5;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Chapter Slides */
+  .slide-chapter {
+    text-align: center;
+    position: relative;
+  }
+
+  .chapter-number {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    opacity: 0.7;
+  }
+
+  .chapter-title {
+    font-family: 'Cinzel', serif;
+    font-size: 52px;
+    font-weight: 700;
+    color: var(--gold-light);
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+
+  .chapter-subtitle {
+    font-family: 'Crimson Text', serif;
+    font-size: 22px;
+    font-style: italic;
+    color: rgba(248, 246, 240, 0.5);
+    max-width: 700px;
+  }
+
+  .chapter-divider {
+    width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 24px auto;
+  }
+
+  /* Content Slides */
+  .slide-content {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 60px 100px;
+    background: linear-gradient(160deg, #0A1628 0%, #111D33 100%);
+  }
+
+  .slide-content .slide-header {
+    margin-bottom: 40px;
+    width: 100%;
+  }
+
+  .slide-header .label {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.7;
+    margin-bottom: 8px;
+  }
+
+  .slide-header h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.2;
+  }
+
+  .slide-body {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* Story Text */
+  .story-text {
+    font-family: 'Crimson Text', serif;
+    font-size: 26px;
+    line-height: 1.7;
+    color: rgba(248, 246, 240, 0.85);
+    max-width: 900px;
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .story-text em {
+    color: var(--gold-light);
+    font-style: italic;
+  }
+
+  /* Two Column Layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    width: 100%;
+  }
+
+  .col-narrative {
+    font-family: 'Crimson Text', serif;
+    font-size: 22px;
+    line-height: 1.8;
+    color: rgba(248, 246, 240, 0.8);
+    padding-right: 20px;
+    border-right: 1px solid rgba(212, 168, 67, 0.15);
+  }
+
+  .col-narrative em {
+    color: var(--gold-light);
+  }
+
+  .col-lesson {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .lesson-card {
+    background: rgba(212, 168, 67, 0.06);
+    border: 1px solid rgba(212, 168, 67, 0.15);
+    border-radius: 12px;
+    padding: 20px 24px;
+  }
+
+  .lesson-card .lesson-label {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .lesson-card p {
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(248, 246, 240, 0.75);
+  }
+
+  .lesson-card code {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--blue-accent);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  /* Agent Cards */
+  .agent-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    width: 100%;
+  }
+
+  .agent-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 32px 28px;
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .agent-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .agent-card.ops::before { background: linear-gradient(90deg, var(--gold), var(--orange)); }
+  .agent-card.guest::before { background: linear-gradient(90deg, var(--blue-accent), var(--purple)); }
+  .agent-card.integrations::before { background: linear-gradient(90deg, var(--green), #06D6A0); }
+
+  .agent-card .agent-icon {
+    font-size: 42px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .agent-card h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--white);
+  }
+
+  .agent-card .agent-domain {
+    font-size: 13px;
+    color: var(--gray);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .agent-card .agent-example {
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: rgba(248, 246, 240, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 14px;
+    margin-top: 8px;
+  }
+
+  /* Tip Cards */
+  .tip-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    width: 100%;
+  }
+
+  .tip-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 28px;
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+  }
+
+  .tip-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .tip-icon.gold { background: rgba(212, 168, 67, 0.15); }
+  .tip-icon.blue { background: rgba(59, 130, 246, 0.15); }
+  .tip-icon.green { background: rgba(16, 185, 129, 0.15); }
+  .tip-icon.purple { background: rgba(139, 92, 246, 0.15); }
+
+  .tip-card h4 {
+    font-family: 'Cinzel', serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--white);
+  }
+
+  .tip-card p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(248, 246, 240, 0.6);
+  }
+
+  /* Before/After comparison */
+  .compare-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .compare-side {
+    border-radius: 14px;
+    padding: 32px;
+  }
+
+  .compare-side.before {
+    background: rgba(192, 57, 43, 0.08);
+    border: 1px solid rgba(192, 57, 43, 0.2);
+  }
+
+  .compare-side.after {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+
+  .compare-label {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .compare-side.before .compare-label { color: var(--red-light); }
+  .compare-side.after .compare-label { color: var(--green); }
+
+  .compare-side blockquote {
+    font-family: 'Crimson Text', serif;
+    font-size: 20px;
+    font-style: italic;
+    line-height: 1.6;
+    color: rgba(248, 246, 240, 0.75);
+  }
+
+  /* Data sources grid */
+  .data-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    width: 100%;
+  }
+
+  .data-tag {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: rgba(248, 246, 240, 0.7);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .data-tag .tag-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .tag-dot.gold { background: var(--gold); }
+  .tag-dot.blue { background: var(--blue-accent); }
+  .tag-dot.green { background: var(--green); }
+  .tag-dot.purple { background: var(--purple); }
+  .tag-dot.orange { background: var(--orange); }
+
+  /* Flow / Step items */
+  .flow-steps {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .flow-step {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 28px 24px;
+    text-align: center;
+    position: relative;
+  }
+
+  .flow-step .step-num {
+    font-family: 'Cinzel', serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: rgba(212, 168, 67, 0.2);
+    margin-bottom: 12px;
+  }
+
+  .flow-step h4 {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+
+  .flow-step p {
+    font-size: 14px;
+    color: rgba(248, 246, 240, 0.55);
+    line-height: 1.5;
+  }
+
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    color: var(--gold);
+    font-size: 24px;
+    opacity: 0.4;
+  }
+
+  /* Big stat */
+  .big-stat {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .big-stat .number {
+    font-family: 'Cinzel', serif;
+    font-size: 80px;
+    font-weight: 900;
+    background: linear-gradient(180deg, var(--gold-light), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+  }
+
+  .big-stat .stat-label {
+    font-size: 16px;
+    color: var(--gray);
+    margin-top: 8px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* Conversation thread */
+  .convo-thread {
+    max-width: 700px;
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .convo-msg {
+    padding: 18px 24px;
+    border-radius: 16px;
+    max-width: 85%;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .convo-msg.user {
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    color: rgba(248, 246, 240, 0.85);
+  }
+
+  .convo-msg.zeno {
+    background: rgba(212, 168, 67, 0.08);
+    border: 1px solid rgba(212, 168, 67, 0.15);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    color: rgba(248, 246, 240, 0.75);
+  }
+
+  .convo-msg .msg-sender {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: 0.6;
+  }
+
+  .convo-msg.user .msg-sender { color: var(--blue-accent); }
+  .convo-msg.zeno .msg-sender { color: var(--gold); }
+
+  /* CTA slide */
+  .slide-cta {
+    text-align: center;
+    background: linear-gradient(135deg, #070E1A 0%, #0F1D35 40%, #1A2744 100%);
+    position: relative;
+  }
+
+  .slide-cta::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 50%, rgba(212, 168, 67, 0.06) 0%, transparent 60%);
+  }
+
+  .cta-title {
+    font-family: 'Cinzel', serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--gold-light);
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-text {
+    font-size: 18px;
+    color: rgba(248, 246, 240, 0.6);
+    max-width: 600px;
+    line-height: 1.7;
+    margin-bottom: 36px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-steps {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-step {
+    background: rgba(212, 168, 67, 0.06);
+    border: 1px solid rgba(212, 168, 67, 0.2);
+    border-radius: 14px;
+    padding: 24px 28px;
+    text-align: center;
+    min-width: 200px;
+  }
+
+  .cta-step .cta-step-num {
+    font-family: 'Cinzel', serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .cta-step h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+
+  .cta-step p {
+    font-size: 13px;
+    color: var(--gray);
+  }
+
+  /* Decorative elements */
+  .greek-border {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--gold) 0px,
+      var(--gold) 12px,
+      transparent 12px,
+      transparent 16px
+    );
+    opacity: 0.15;
+  }
+
+  .corner-ornament {
+    position: absolute;
+    width: 60px; height: 60px;
+    border: 1px solid rgba(212, 168, 67, 0.1);
+    pointer-events: none;
+  }
+
+  .corner-ornament.tl { top: 24px; left: 24px; border-right: none; border-bottom: none; }
+  .corner-ornament.tr { top: 24px; right: 24px; border-left: none; border-bottom: none; }
+  .corner-ornament.bl { bottom: 24px; left: 24px; border-right: none; border-top: none; }
+  .corner-ornament.br { bottom: 24px; right: 24px; border-left: none; border-top: none; }
+
+  /* Keyboard hint */
+  .key-hint {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    font-size: 11px;
+    color: rgba(248, 246, 240, 0.2);
+    z-index: 100;
+    letter-spacing: 1px;
+  }
+
+  .key-hint kbd {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: inherit;
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide.active .animate-in {
+    animation: fadeInUp 0.6s ease forwards;
+  }
+
+  .slide.active .animate-in:nth-child(1) { animation-delay: 0.1s; opacity: 0; }
+  .slide.active .animate-in:nth-child(2) { animation-delay: 0.2s; opacity: 0; }
+  .slide.active .animate-in:nth-child(3) { animation-delay: 0.3s; opacity: 0; }
+  .slide.active .animate-in:nth-child(4) { animation-delay: 0.4s; opacity: 0; }
+  .slide.active .animate-in:nth-child(5) { animation-delay: 0.5s; opacity: 0; }
+  .slide.active .animate-in:nth-child(6) { animation-delay: 0.6s; opacity: 0; }
+</style>
+</head>
+<body>
+
+<div class="key-hint"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> to navigate</div>
+
+<div class="slide-deck" id="deck">
+
+  <!-- ============ SLIDE 1: TITLE ============ -->
+  <div class="slide slide-title active" data-slide="0">
+    <div class="corner-ornament tl"></div>
+    <div class="corner-ornament tr"></div>
+    <div class="corner-ornament bl"></div>
+    <div class="corner-ornament br"></div>
+    <img src="/Users/petera/Downloads/Image from iOS.jpg" alt="Zeno" class="title-hero-img animate-in">
+    <div class="title-super animate-in">Breezeway Presents</div>
+    <div class="title-main animate-in">The Legends<br>of Zeno</div>
+    <div class="title-sub animate-in">How a data hero rose from the depths of dashboards to bring the power of answers to all who seek them.</div>
+    <div class="greek-border"></div>
+  </div>
+
+  <!-- ============ SLIDE 2: THE PROPHECY (What is Zeno) ============ -->
+  <div class="slide slide-content" data-slide="1">
+    <div class="corner-ornament tl"></div>
+    <div class="corner-ornament br"></div>
+    <div class="slide-body" style="justify-content: center; align-items: center;">
+      <div class="story-text animate-in">
+        In the age before Zeno, the people of Breezeway wandered in darkness.<br><br>
+        They had <em>data</em> &mdash; mountains of it &mdash; but to unlock its secrets required arcane rituals: SQL incantations, dashboard quests, and weeks of waiting for the data priests to return with answers.<br><br>
+        Then one day, <em>an oracle emerged</em>.
+      </div>
+    </div>
+    <div class="greek-border"></div>
+  </div>
+
+  <!-- ============ SLIDE 3: What Zeno Is ============ -->
+  <div class="slide slide-content" data-slide="2">
+    <div class="slide-header animate-in">
+      <div class="label">The Oracle Awakens</div>
+      <h2>Zeno: AI-Powered Data Analytics</h2>
+    </div>
+    <div class="slide-body">
+      <div class="flow-steps">
+        <div class="flow-step animate-in">
+          <div class="step-num">I</div>
+          <h4>Ask in Plain English</h4>
+          <p>No SQL. No dashboards. Just type your question like you'd ask a colleague.</p>
+        </div>
+        <div class="flow-arrow animate-in">&rarr;</div>
+        <div class="flow-step animate-in">
+          <div class="step-num">II</div>
+          <h4>Zeno Translates</h4>
+          <p>Your question becomes a precise database query, run against our data warehouse.</p>
+        </div>
+        <div class="flow-arrow animate-in">&rarr;</div>
+        <div class="flow-step animate-in">
+          <div class="step-num">III</div>
+          <h4>Get Instant Answers</h4>
+          <p>Data, metrics, and insights returned with context &mdash; in seconds, not days.</p>
+        </div>
+      </div>
+    </div>
+    <div class="greek-border"></div>
+  </div>
+
+  <!-- ============ SLIDE 4: CHAPTER I - THREE TEMPLES ============ -->
+  <div class="slide slide-chapter" data-slide="3" style="background: linear-gradient(160deg, #0D1829, #162540);">
+    <div class="corner-ornament tl"></div>
+    <div class="corner-ornament tr"></div>
+    <div class="corner-ornament bl"></div>
+    <div class="corner-ornament br"></div>
+    <div class="chapter-number animate-in">Legend I</div>
+    <div class="chapter-title animate-in">The Three Temples</div>
+    <div class="chapter-divider animate-in"></div>
+    <div class="chapter-subtitle animate-in">In which Zeno reveals that wisdom lives not in one place, but in three &mdash; and choosing the right temple is the first step to truth.</div>
+  </div>
+
+  <!-- ============ SLIDE 5: THE THREE AGENTS ============ -->
+  <div class="slide slide-content" data-slide="4">
+    <div class="slide-header animate-in">
+      <div class="label">Legend I &middot; The Three Temples</div>
+      <h2>Choose Your Agent Wisely</h2>
+    </div>
+    <div class="slide-body">
+      <div class="agent-cards">
+        <div class="agent-card ops animate-in">
+          <span class="agent-icon">&#9876;</span>
+          <h3>Ops Agent</h3>
+          <div class="agent-domain">Tasks, work orders, scheduling, team management, payments, cleaning, maintenance</div>
+          <div class="agent-example">"What is the average task completion time for paid companies last month?"</div>
+        </div>
+        <div class="agent-card guest animate-in">
+          <span class="agent-icon">&#9733;</span>
+          <h3>Guest Experience</h3>
+          <div class="agent-domain">Messaging, Assist AI, response times, guest reviews, guest guides, verification</div>
+          <div class="agent-example">"What percentage of messages are handled automatically by Assist AI?"</div>
+        </div>
+        <div class="agent-card integrations animate-in">
+          <span class="agent-icon">&#9741;</span>
+          <h3>Integrations</h3>
+          <div class="agent-domain">Smart home devices, PMS integrations, public API, webhooks</div>
+          <div class="agent-example">"Which PMS partners have the most active connections?"</div>
+        </div>
+      </div>
+    </div>
+    <div class="greek-border"></div>
+  </div>
+
+  <!-- ============ SLIDE 6: OPS AGENT DEEP DIVE ============ -->
+  <div class="slide slide-content" data-slide="5">
+    <div class="slide-header animate-in">
+      <div class="label">The Temple of Operations</div>
+      <h2>The Ops Agent's Domain</h2>
+    </div>
+    <div class="slide-body">
+      <div class="data-grid">
+        <div class="data-tag animate-in"><span class="tag-dot gold"></span>Tasks & Work Orders</div>
+        <div class="data-tag animate-in"><span class="tag-dot gold"></span>Reservations</div>
+        <div class="data-tag animate-in"><span class="tag-dot gold"></span>Default Assignees</div>
+        <div class="data-tag animate-in"><span class="tag-dot orange"></span>Workflow Scheduling</div>
+        <div class="data-tag animate-in"><span class="tag-dot orange"></span>Auto-Message Configs</div>
+        <div class="data-tag animate-in"><span class="tag-dot purple"></span>Company People & Teams</div>
+        <div class="data-tag animate-in"><span class="tag-dot purple"></span>Team Invitations</div>
+        <div class="data-tag animate-in"><span class="tag-dot purple"></span>Engaged Users</div>
+        <div class="data-tag animate-in"><span class="tag-dot green"></span>Task Charges & Payments</div>
+        <div class="data-tag animate-in"><span class="tag-dot green"></span>Upsells & Upsell Configs</div>
+        <div class="data-tag animate-in"><span class="tag-dot blue"></span>Homes & Companies</div>
+        <div class="data-tag animate-in"><span class="tag-dot blue"></span>Active Homes & Paid Cos</div>
+        <div class="data-tag animate-in"><span class="tag-dot blue"></span>Home Elements & Fields</div>
+        <div class="data-tag animate-in"><span class="tag-dot blue"></span>Company Supplies</div>
+        <div class="data-tag animate-in"><span class="tag-dot gold"></span>App Crashes & Events</div>
+        <div class="data-tag animate-in"><span class="tag-dot gold"></span>Reporting Schedules</div>
+        <div class="data-tag animate-in"><span class="tag-dot gold"></span>Guest Verifications</div>
+        <div class="data-tag animate-in"><span class="tag-dot gold"></span>Saved Views</div>
+      </div>
+    </div>
+    <div class="greek-border"></div>
+  </div>
+
+  <!-- ============ SLIDE 7: GUEST EXPERIENCE DEEP DIVE ============ -->
+  <div class="slide slide-content" data-slide="6">
+    <div class="slide-header animate-in">
+      <div class="label">The Temple of Guest Experience</div>
+      <h2>The Guest Experience Agent's Domain</h2>
+    </div>
+    <div class="slide-body">
+      <div class="data-grid">
+        <div class="data-tag animate-in"><span class="tag-dot blue"></span>Messages & Response Times</div>
+        <div class="data-tag animate-in"><span class="tag-dot blue"></span>Messages with Reservations</div>
+        <div class="data-tag animate-in"><span class="tag-dot blue"></span>Assist AI Interactions</div>
+        <div class="data-tag animate-in"><span class="tag-dot purple"></span>Daily Conversations</div>
+        <div class="data-tag animate-in"><span class="tag-dot purple"></span>Conversation Notes</div>
+        <div class="data-tag animate-in"><span class="tag-dot purple"></span>Conversation Sentiments</div>
+        <div class="data-tag animate-in"><span class="tag-dot purple"></span>Conversation Tags</div>
+        <div class="data-tag animate-in"><span class="tag-dot purple"></span>Conversation Contacts</div>
+        <div class="data-tag animate-in"><span class="tag-dot orange"></span>Reservation Reviews</div>
+        <div class="data-tag animate-in"><span class="tag-dot orange"></span>Review Category Scores</div>
+        <div class="data-tag animate-in"><span class="tag-dot orange"></span>Guest Arrival Ratings</div>
+        <div class="data-tag animate-in"><span class="tag-dot green"></span>Guide Click Engagements</div>
+        <div class="data-tag animate-in"><span class="tag-dot green"></span>Guide Service Requests</div>
+        <div class="data-tag animate-in"><span class="tag-dot green"></span>Guide Access Tokens</div>
+        <div class="data-tag animate-in"><span class="tag-dot gold"></span>Homes & Companies</div>
+        <div class="data-tag animate-in"><span class="tag-dot gold"></span>Active Homes & Paid Cos</div>
+        <div class="data-tag animate-in"><span class="tag-dot gold"></span>Upsell Onboarding</div>
+        <div class="data-tag animate-in"><span class="tag-dot gold"></span>Event Tracking</div>
+      </div>
+    </div>
+    <div class="greek-border"></div>
+  </div>
+
+  <!-- ============ SLIDE 8: INTEGRATIONS DEEP DIVE ============ -->
+  <div class="slide slide-content" data-slide="7">
+    <div class="slide-header animate-in">
+      <div class="label">The Temple of Integrations</div>
+      <h2>The Integrations Agent's Domain</h2>
+    </div>
+    <div class="slide-body" style="justify-content: center;">
+      <div class="data-grid" style="max-width: 700px; grid-template-columns: repeat(2, 1fr);">
+        <div class="data-tag animate-in"><span class="tag-dot green"></span>Home Devices (IoT)</div>
+        <div class="data-tag animate-in"><span class="tag-dot green"></span>Device History</div>
+        <div class="data-tag animate-in"><span class="tag-dot blue"></span>Integration Partners (PMS)</div>
+        <div class="data-tag animate-in"><span class="tag-dot blue"></span>Webhook Subscriptions</div>
+        <div class="data-tag animate-in"><span class="tag-dot gold"></span>Homes & Companies</div>
+        <div class="data-tag animate-in"><span class="tag-dot gold"></span>Active Homes & Paid Cos</div>
+        <div class="data-tag animate-in"><span class="tag-dot purple"></span>Event Tracking</div>
+      </div>
+      <div style="margin-top: 40px; text-align: center;">
+        <div class="lesson-card animate-in" style="max-width: 600px; margin: 0 auto;">
+          <div class="lesson-label">The Moral</div>
+          <p>Each temple holds different knowledge. Asking the wrong temple yields no answer &mdash; not because the question is bad, but because it's asked in the wrong place.</p>
+        </div>
+      </div>
+    </div>
+    <div class="greek-border"></div>
+  </div>
+
+  <!-- ============ SLIDE 9: CHAPTER II - FOG OF VAGUENESS ============ -->
+  <div class="slide slide-chapter" data-slide="8" style="background: linear-gradient(160deg, #0D1829, #162540);">
+    <div class="corner-ornament tl"></div>
+    <div class="corner-ornament tr"></div>
+    <div class="corner-ornament bl"></div>
+    <div class="corner-ornament br"></div>
+    <div class="chapter-number animate-in">Legend II</div>
+    <div class="chapter-title animate-in">The Fog of Vagueness</div>
+    <div class="chapter-divider animate-in"></div>
+    <div class="chapter-subtitle animate-in">In which a hero learns that the oracle only speaks clearly to those who ask clearly &mdash; and that precision is the sword that cuts through fog.</div>
+  </div>
+
+  <!-- ============ SLIDE 10: VAGUE vs SPECIFIC ============ -->
+  <div class="slide slide-content" data-slide="9">
+    <div class="slide-header animate-in">
+      <div class="label">Legend II &middot; The Fog of Vagueness</div>
+      <h2>The Power of a Precise Question</h2>
+    </div>
+    <div class="slide-body" style="justify-content: center;">
+      <div class="compare-block">
+        <div class="compare-side before animate-in">
+          <div class="compare-label">Lost in the Fog</div>
+          <blockquote>"How is messaging doing?"</blockquote>
+          <p style="margin-top: 16px; font-size: 14px; color: rgba(248,246,240,0.4); line-height: 1.5;">Too broad. No time range. No specific metric. Zeno must guess what you mean &mdash; and may guess wrong.</p>
+        </div>
+        <div class="compare-side after animate-in">
+          <div class="compare-label">Sword of Precision</div>
+          <blockquote>"What was the average response time for guest messages in January 2026?"</blockquote>
+          <p style="margin-top: 16px; font-size: 14px; color: rgba(248,246,240,0.4); line-height: 1.5;">Specific metric. Clear time range. Zeno knows exactly what to look up.</p>
+        </div>
+      </div>
+    </div>
+    <div class="greek-border"></div>
+  </div>
+
+  <!-- ============ SLIDE 11: TIPS FOR PRECISION ============ -->
+  <div class="slide slide-content" data-slide="10">
+    <div class="slide-header animate-in">
+      <div class="label">Legend II &middot; Weapons of Clarity</div>
+      <h2>Four Rules to Defeat the Fog</h2>
+    </div>
+    <div class="slide-body">
+      <div class="tip-grid">
+        <div class="tip-card animate-in">
+          <div class="tip-icon gold">&#9201;</div>
+          <div>
+            <h4>Always Include a Time Range</h4>
+            <p>"Last week," "Q4 2025," "the last 6 months" &mdash; without a date, Zeno has to guess what period you care about.</p>
+          </div>
+        </div>
+        <div class="tip-card animate-in">
+          <div class="tip-icon blue">&#9881;</div>
+          <div>
+            <h4>Use Specific Metric Names</h4>
+            <p>Say <code>completion rate</code>, <code>response time</code>, <code>active homes</code> &mdash; not vague terms like "performance" or "engagement."</p>
+          </div>
+        </div>
+        <div class="tip-card animate-in">
+          <div class="tip-icon green">&#9998;</div>
+          <div>
+            <h4>One Question at a Time</h4>
+            <p>Zeno works best with a single focused question. Ask three things, and you'll get a muddled answer. Ask one, and you'll get precision.</p>
+          </div>
+        </div>
+        <div class="tip-card animate-in">
+          <div class="tip-icon purple">&#128172;</div>
+          <div>
+            <h4>Talk Like It's a Data Analyst</h4>
+            <p>"Can you pull the average task completion time for paid companies last month?" &mdash; that's the level of specificity Zeno needs.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="greek-border"></div>
+  </div>
+
+  <!-- ============ SLIDE 12: CHAPTER III - CHAIN OF INSIGHT ============ -->
+  <div class="slide slide-chapter" data-slide="11" style="background: linear-gradient(160deg, #0D1829, #162540);">
+    <div class="corner-ornament tl"></div>
+    <div class="corner-ornament tr"></div>
+    <div class="corner-ornament bl"></div>
+    <div class="corner-ornament br"></div>
+    <div class="chapter-number animate-in">Legend III</div>
+    <div class="chapter-title animate-in">The Chain of Insight</div>
+    <div class="chapter-divider animate-in"></div>
+    <div class="chapter-subtitle animate-in">In which the hero discovers that the greatest answers are not found in a single question, but forged link by link in conversation.</div>
+  </div>
+
+  <!-- ============ SLIDE 13: ITERATIVE QUESTIONING ============ -->
+  <div class="slide slide-content" data-slide="12">
+    <div class="slide-header animate-in">
+      <div class="label">Legend III &middot; The Chain of Insight</div>
+      <h2>Build on Your Answers</h2>
+    </div>
+    <div class="slide-body" style="justify-content: center;">
+      <div class="convo-thread">
+        <div class="convo-msg user animate-in">
+          <div class="msg-sender">You</div>
+          How many tasks were completed last month?
+        </div>
+        <div class="convo-msg zeno animate-in">
+          <div class="msg-sender">Zeno</div>
+          In February 2026, a total of 847,392 tasks were completed across all customers.
+        </div>
+        <div class="convo-msg user animate-in">
+          <div class="msg-sender">You</div>
+          Can you break that down by customer segment?
+        </div>
+        <div class="convo-msg zeno animate-in">
+          <div class="msg-sender">Zeno</div>
+          Here's the breakdown: Enterprise: 312K, Mid-Market: 289K, SMB: 246K. Enterprise saw a 12% increase month-over-month.
+        </div>
+        <div class="convo-msg user animate-in">
+          <div class="msg-sender">You</div>
+          What's driving the Enterprise increase?
+        </div>
+      </div>
+    </div>
+    <div class="greek-border"></div>
+  </div>
+
+  <!-- ============ SLIDE 14: CHAPTER IV - WHEN THE ORACLE ERRS ============ -->
+  <div class="slide slide-chapter" data-slide="13" style="background: linear-gradient(160deg, #0D1829, #162540);">
+    <div class="corner-ornament tl"></div>
+    <div class="corner-ornament tr"></div>
+    <div class="corner-ornament bl"></div>
+    <div class="corner-ornament br"></div>
+    <div class="chapter-number animate-in">Legend IV</div>
+    <div class="chapter-title animate-in">When the Oracle Errs</div>
+    <div class="chapter-divider animate-in"></div>
+    <div class="chapter-subtitle animate-in">Even the mightiest oracle can misread the signs. The wise hero knows how to guide the oracle back to truth.</div>
+  </div>
+
+  <!-- ============ SLIDE 15: TROUBLESHOOTING ============ -->
+  <div class="slide slide-content" data-slide="14">
+    <div class="slide-header animate-in">
+      <div class="label">Legend IV &middot; When the Oracle Errs</div>
+      <h2>When Zeno Gets It Wrong</h2>
+    </div>
+    <div class="slide-body">
+      <div class="tip-grid">
+        <div class="tip-card animate-in">
+          <div class="tip-icon gold">&#128260;</div>
+          <div>
+            <h4>Rephrase Your Question</h4>
+            <p>Different wording can lead Zeno to interpret your intent more accurately. Try being more specific or using different terms.</p>
+          </div>
+        </div>
+        <div class="tip-card animate-in">
+          <div class="tip-icon blue">&#127963;</div>
+          <div>
+            <h4>Check Your Temple</h4>
+            <p>Asking the Ops Agent about messaging? It doesn't have the right data. Switch to the Guest Experience Agent.</p>
+          </div>
+        </div>
+        <div class="tip-card animate-in">
+          <div class="tip-icon green">&#128270;</div>
+          <div>
+            <h4>Read the SQL</h4>
+            <p>Zeno always shows the query it ran. If the logic looks off, that's your clue to rephrase the question.</p>
+          </div>
+        </div>
+        <div class="tip-card animate-in">
+          <div class="tip-icon purple">&#9995;</div>
+          <div>
+            <h4>Ask Team Data</h4>
+            <p>Stuck? Drop a message in <strong>#project-zeno-beta</strong>. The team is there to help and your feedback makes Zeno better.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="greek-border"></div>
+  </div>
+
+  <!-- ============ SLIDE 16: IMPORTANT NOTES ============ -->
+  <div class="slide slide-content" data-slide="15">
+    <div class="slide-header animate-in">
+      <div class="label">Sacred Scrolls</div>
+      <h2>Things to Know</h2>
+    </div>
+    <div class="slide-body" style="justify-content: center;">
+      <div class="tip-grid" style="max-width: 800px; grid-template-columns: 1fr; margin: 0 auto;">
+        <div class="tip-card animate-in">
+          <div class="tip-icon gold">&#9203;</div>
+          <div>
+            <h4>24-Hour Data Delay</h4>
+            <p>Today's data is not yet available. The most recent complete data is from yesterday. Plan your questions accordingly.</p>
+          </div>
+        </div>
+        <div class="tip-card animate-in">
+          <div class="tip-icon blue">&#128202;</div>
+          <div>
+            <h4>Large Result Sets</h4>
+            <p>If your question returns a huge number of rows, Zeno will automatically aggregate or filter to keep results useful and readable.</p>
+          </div>
+        </div>
+        <div class="tip-card animate-in">
+          <div class="tip-icon green">&#128274;</div>
+          <div>
+            <h4>Access Permissions</h4>
+            <p>Some data requires specific Snowflake permissions. If you see a permissions error, contact Team Data in #project-zeno-beta.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="greek-border"></div>
+  </div>
+
+  <!-- ============ SLIDE 17: GET ACCESS ============ -->
+  <div class="slide slide-cta" data-slide="16">
+    <div class="corner-ornament tl"></div>
+    <div class="corner-ornament tr"></div>
+    <div class="corner-ornament bl"></div>
+    <div class="corner-ornament br"></div>
+    <div class="cta-title animate-in">Begin Your Legend</div>
+    <div class="cta-text animate-in">
+      Zeno is in beta and available now. Here's how to get started.
+    </div>
+    <div class="cta-steps">
+      <div class="cta-step animate-in">
+        <div class="cta-step-num">I</div>
+        <h4>Request Access</h4>
+        <p>#project-zeno-beta on Slack</p>
+      </div>
+      <div class="cta-step animate-in">
+        <div class="cta-step-num">II</div>
+        <h4>Set Up Account</h4>
+        <p>Snowflake login + MFA</p>
+      </div>
+      <div class="cta-step animate-in">
+        <div class="cta-step-num">III</div>
+        <h4>Ask a Question</h4>
+        <p>Pick an agent. Start asking.</p>
+      </div>
+    </div>
+    <div class="greek-border"></div>
+  </div>
+
+  <!-- ============ SLIDE 18: CLOSING ============ -->
+  <div class="slide slide-title" data-slide="17">
+    <div class="corner-ornament tl"></div>
+    <div class="corner-ornament tr"></div>
+    <div class="corner-ornament bl"></div>
+    <div class="corner-ornament br"></div>
+    <img src="/Users/petera/Downloads/Image from iOS.jpg" alt="Zeno" class="title-hero-img animate-in" style="width: 180px; height: 180px;">
+    <div class="title-main animate-in" style="font-size: 56px;">The Legend<br>Continues</div>
+    <div class="title-sub animate-in">Every question you ask makes Zeno stronger.<br>Your feedback shapes the future of data at Breezeway.</div>
+    <div style="margin-top: 32px; position: relative; z-index: 1;" class="animate-in">
+      <div style="font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 4px; color: var(--gold); opacity: 0.6;">#project-zeno-beta</div>
+    </div>
+    <div class="greek-border"></div>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<nav class="nav">
+  <button id="prev" onclick="changeSlide(-1)">&larr;</button>
+  <div class="progress-dots" id="dots"></div>
+  <div class="slide-counter" id="counter">1 / 18</div>
+  <button id="next" onclick="changeSlide(1)">&rarr;</button>
+</nav>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  const dotsContainer = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+
+  // Create dots
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.onclick = () => goToSlide(i);
+    dotsContainer.appendChild(dot);
+  }
+
+  function goToSlide(n) {
+    if (n === current || n < 0 || n >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current].classList.remove('exit'), 600);
+
+    current = n;
+    slides[current].classList.add('active');
+
+    // Update dots
+    document.querySelectorAll('.dot').forEach((d, i) => {
+      d.className = 'dot' + (i === current ? ' active' : i < current ? ' visited' : '');
+    });
+
+    counter.textContent = (current + 1) + ' / ' + total;
+  }
+
+  function changeSlide(dir) {
+    goToSlide(current + dir);
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); changeSlide(1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); changeSlide(-1); }
+    if (e.key === 'Home') { e.preventDefault(); goToSlide(0); }
+    if (e.key === 'End') { e.preventDefault(); goToSlide(total - 1); }
+  });
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) changeSlide(diff > 0 ? 1 : -1);
+  });
+</script>
+
+</body>
+</html>
