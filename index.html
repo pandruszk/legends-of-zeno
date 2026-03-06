@@ -85,6 +85,21 @@
   .legend-card h3 { font-family: 'Cinzel', serif; font-size: 22px; font-weight: 700; color: var(--gold-light); margin-bottom: 8px; }
   .legend-card p { font-family: 'Crimson Text', serif; font-size: 16px; color: rgba(248,246,240,0.5); font-style: italic; line-height: 1.5; }
   .legend-card .card-slides { font-size: 12px; color: var(--gray); margin-top: 16px; }
+  .card-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .card-btn {
+    flex: 1; padding: 10px 16px; border-radius: 8px; font-family: 'Cinzel', serif;
+    font-size: 12px; font-weight: 700; letter-spacing: 2px; cursor: pointer;
+    text-align: center; transition: all 0.2s; border: 1px solid;
+  }
+  .card-btn.watch {
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold)); color: var(--bg);
+    border-color: var(--gold);
+  }
+  .card-btn.watch:hover { box-shadow: 0 4px 20px rgba(212,168,67,0.3); transform: translateY(-1px); }
+  .card-btn.read {
+    background: transparent; color: var(--gold); border-color: rgba(212,168,67,0.3);
+  }
+  .card-btn.read:hover { background: rgba(212,168,67,0.08); border-color: var(--gold); }
 
   .empty-state {
     text-align: center; padding: 60px 24px; color: var(--gray);
@@ -269,7 +284,44 @@
   .btn-add-slide:hover { border-color: var(--gold); background: rgba(212,168,67,0.05); }
   .editor-actions { display: flex; gap: 12px; justify-content: flex-end; }
 
+  /* ===== READER MODE ===== */
+  .reader { padding: 120px 24px 100px; max-width: 860px; margin: 0 auto; }
+  .reader-hero { text-align: center; margin-bottom: 60px; }
+  .reader-hero img {
+    width: 120px; height: 120px; border-radius: 50%; object-fit: cover; object-position: top;
+    border: 2px solid var(--gold); box-shadow: 0 0 40px rgba(212,168,67,0.15); margin-bottom: 24px;
+  }
+  .reader-hero h1 { font-family: 'Cinzel', serif; font-size: 44px; font-weight: 900; margin-bottom: 12px; }
+  .reader-hero .reader-meta { font-size: 13px; color: var(--gray); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+  .reader-hero p { font-family: 'Crimson Text', serif; font-size: 20px; font-style: italic; color: rgba(248,246,240,0.5); max-width: 550px; margin: 0 auto; }
+
+  .reader-section { margin-bottom: 64px; }
+  .reader-divider { width: 60px; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 64px auto; }
+
+  .reader-narrative { font-family: 'Crimson Text', serif; font-size: 22px; line-height: 1.8; color: rgba(248,246,240,0.8); text-align: center; }
+  .reader-narrative em { color: var(--gold-light); }
+
+  .reader-section h2 { font-family: 'Cinzel', serif; font-size: 32px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+  .reader-section .section-sub { text-align: center; color: rgba(248,246,240,0.5); font-size: 16px; margin-bottom: 36px; }
+
+  .reader-agents { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .reader-tips { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .reader-cta { text-align: center; }
+  .reader-cta .cta-boxes { justify-content: center; }
+
+  .reader-switch {
+    text-align: center; margin-top: 48px; padding-top: 48px;
+    border-top: 1px solid rgba(212,168,67,0.1);
+  }
+  .reader-switch a {
+    font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 2px;
+    color: var(--gold); cursor: pointer; transition: color 0.2s;
+  }
+  .reader-switch a:hover { color: var(--gold-light); }
+
   @media (max-width: 768px) {
+    .reader-agents { grid-template-columns: 1fr; }
+    .reader-tips { grid-template-columns: 1fr; }
     .agents-row { grid-template-columns: 1fr; }
     .tips-grid { grid-template-columns: 1fr; }
     .cta-boxes { flex-direction: column; align-items: center; }
@@ -306,7 +358,8 @@
 <!-- ===== LEGEND VIEWER ===== -->
 <div class="page" id="page-viewer">
   <div class="viewer" id="viewer"></div>
-  <button class="viewer-close" onclick="navigate('home')">&times;</button>
+  <button class="viewer-close" onclick="navigate('home')" title="Close">&times;</button>
+  <button class="viewer-close" id="viewer-read-btn" style="right: 72px; font-size: 14px; font-family: 'Cinzel', serif; letter-spacing: 1px; width: auto; padding: 0 16px;" onclick="switchToRead()" title="Switch to read mode">Read</button>
   <div class="viewer-progress" id="viewer-progress"></div>
   <nav class="viewer-nav" id="viewer-nav">
     <button onclick="viewerPrev()">&larr;</button>
@@ -315,6 +368,11 @@
     <div class="v-counter" id="viewer-counter"></div>
     <button onclick="viewerNext()">&rarr;</button>
   </nav>
+</div>
+
+<!-- ===== READER MODE ===== -->
+<div class="page" id="page-reader">
+  <div class="reader" id="reader-content"></div>
 </div>
 
 <!-- ===== SUBMIT PAGE ===== -->
@@ -415,7 +473,7 @@
   function navigate(page, params) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.topnav-links a').forEach(a => a.classList.remove('active'));
-    document.getElementById('page-' + (page === 'viewer' ? 'viewer' : page)).classList.add('active');
+    document.getElementById('page-' + page).classList.add('active');
 
     const navLink = document.getElementById('nav-' + page);
     if (navLink) navLink.classList.add('active');
@@ -423,7 +481,11 @@
     // Show/hide topnav in viewer
     document.getElementById('topnav').style.display = page === 'viewer' ? 'none' : 'flex';
 
-    if (page === 'viewer' && params?.legend) openLegend(params.legend);
+    if (page === 'viewer' && params?.legend) {
+      openLegend(params.legend);
+      if (params.autoplay) setTimeout(() => startViewer(), 600);
+    }
+    if (page === 'reader' && params?.legend) openReader(params.legend);
     if (page !== 'viewer') stopViewer();
 
     window.scrollTo(0, 0);
@@ -438,11 +500,14 @@
       return;
     }
     grid.innerHTML = published.map(l => `
-      <div class="legend-card" onclick="navigate('viewer', {legend: '${l.id}'})">
+      <div class="legend-card">
         <div class="card-meta">${l.author} &middot; ${l.date}</div>
         <h3>${l.title}</h3>
         <p>${l.subtitle}</p>
-        <div class="card-slides">${l.slides.length} slides</div>
+        <div class="card-actions">
+          <div class="card-btn watch" onclick="event.stopPropagation(); navigate('viewer', {legend: '${l.id}', autoplay: true})">&#9654; Watch</div>
+          <div class="card-btn read" onclick="event.stopPropagation(); navigate('reader', {legend: '${l.id}'})">Read</div>
+        </div>
       </div>
     `).join('');
   }
@@ -452,13 +517,19 @@
   let viewerSlides = [];
   let viewerTimer = null;
   let viewerPlaying = false;
+  let viewerLegendId = null;
 
   function openLegend(id) {
     const legend = legends.find(l => l.id === id);
     if (!legend) return;
+    viewerLegendId = id;
     viewerCurrent = 0;
     viewerSlides = legend.slides;
     renderViewer();
+  }
+
+  function switchToRead() {
+    if (viewerLegendId) navigate('reader', { legend: viewerLegendId });
   }
 
   function renderViewer() {
@@ -579,6 +650,72 @@
     if (e.key === 'ArrowLeft') { e.preventDefault(); viewerPrev(); }
     if (e.key === 'Escape') navigate('home');
   });
+
+  // ===== READER =====
+  function openReader(id) {
+    const legend = legends.find(l => l.id === id);
+    if (!legend) return;
+    const container = document.getElementById('reader-content');
+    let html = `
+      <div class="reader-hero">
+        <img src="zeno-hero.jpg" alt="Zeno">
+        <div class="reader-meta">${legend.author} &middot; ${legend.date}</div>
+        <h1 class="gold-gradient">${legend.title}</h1>
+        <p>${legend.subtitle}</p>
+      </div>`;
+
+    legend.slides.forEach((s, i) => {
+      if (s.type === 'title') return; // hero already covers this
+      html += '<div class="reader-divider"></div>';
+      html += '<div class="reader-section">';
+      switch (s.type) {
+        case 'narrative':
+          html += `<div class="reader-narrative">${s.text}</div>`;
+          break;
+        case 'agents':
+          html += `<h2>${s.heading}</h2><div class="section-sub">${s.subheading}</div>`;
+          html += '<div class="reader-agents">';
+          html += s.agents.map(a => `
+            <div class="agent-box ${a.color}">
+              <span class="a-icon">${a.icon}</span>
+              <h3>${a.name}</h3>
+              <div class="a-domain">${a.domain}</div>
+              <div class="a-example">"${a.example}"</div>
+            </div>`).join('');
+          html += '</div>';
+          break;
+        case 'tips':
+          html += `<h2>${s.heading}</h2><div class="section-sub">${s.subheading}</div>`;
+          html += '<div class="reader-tips">';
+          html += s.tips.map(t => `
+            <div class="tip-box">
+              <div class="t-icon">${t.icon}</div>
+              <div><h4>${t.title}</h4><p>${t.text}</p></div>
+            </div>`).join('');
+          html += '</div>';
+          break;
+        case 'cta':
+          html += `<div class="reader-cta"><h2>${s.heading}</h2><p style="color:var(--gray); margin-bottom: 32px;">${s.subheading}</p>`;
+          html += '<div class="cta-boxes">';
+          html += s.steps.map(st => `
+            <div class="cta-box">
+              <div class="cta-num">${st.label}</div>
+              <h4>${st.title}</h4>
+              <p>${st.text}</p>
+            </div>`).join('');
+          html += '</div></div>';
+          break;
+      }
+      html += '</div>';
+    });
+
+    html += `
+      <div class="reader-switch">
+        <a onclick="navigate('viewer', {legend: '${id}', autoplay: true})">&#9654; Watch the animated version</a>
+      </div>`;
+
+    container.innerHTML = html;
+  }
 
   // ===== SUBMIT =====
   function submitLegend() {
