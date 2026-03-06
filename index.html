@@ -872,10 +872,6 @@
 
   <!-- ============ SLIDE 4: CHAPTER I - THREE TEMPLES ============ -->
   <div class="slide slide-chapter" data-slide="3" style="background: linear-gradient(160deg, #0D1829, #162540);">
-    <div class="corner-ornament tl"></div>
-    <div class="corner-ornament tr"></div>
-    <div class="corner-ornament bl"></div>
-    <div class="corner-ornament br"></div>
     <div class="chapter-number animate-in">Legend I</div>
     <div class="chapter-title animate-in">The Three Temples</div>
     <div class="chapter-divider animate-in"></div>
@@ -1003,10 +999,6 @@
 
   <!-- ============ SLIDE 9: CHAPTER II - FOG OF VAGUENESS ============ -->
   <div class="slide slide-chapter" data-slide="8" style="background: linear-gradient(160deg, #0D1829, #162540);">
-    <div class="corner-ornament tl"></div>
-    <div class="corner-ornament tr"></div>
-    <div class="corner-ornament bl"></div>
-    <div class="corner-ornament br"></div>
     <div class="chapter-number animate-in">Legend II</div>
     <div class="chapter-title animate-in">The Fog of Vagueness</div>
     <div class="chapter-divider animate-in"></div>
@@ -1079,10 +1071,6 @@
 
   <!-- ============ SLIDE 12: CHAPTER III - CHAIN OF INSIGHT ============ -->
   <div class="slide slide-chapter" data-slide="11" style="background: linear-gradient(160deg, #0D1829, #162540);">
-    <div class="corner-ornament tl"></div>
-    <div class="corner-ornament tr"></div>
-    <div class="corner-ornament bl"></div>
-    <div class="corner-ornament br"></div>
     <div class="chapter-number animate-in">Legend III</div>
     <div class="chapter-title animate-in">The Chain of Insight</div>
     <div class="chapter-divider animate-in"></div>
@@ -1124,10 +1112,6 @@
 
   <!-- ============ SLIDE 14: CHAPTER IV - WHEN THE ORACLE ERRS ============ -->
   <div class="slide slide-chapter" data-slide="13" style="background: linear-gradient(160deg, #0D1829, #162540);">
-    <div class="corner-ornament tl"></div>
-    <div class="corner-ornament tr"></div>
-    <div class="corner-ornament bl"></div>
-    <div class="corner-ornament br"></div>
     <div class="chapter-number animate-in">Legend IV</div>
     <div class="chapter-title animate-in">When the Oracle Errs</div>
     <div class="chapter-divider animate-in"></div>
@@ -1282,6 +1266,9 @@
 
   function staggerAnimations(slide) {
     slide.querySelectorAll('.animate-in').forEach((el, i) => {
+      el.style.animation = 'none';
+      el.offsetHeight; // force reflow
+      el.style.animation = '';
       el.style.animationDelay = (0.1 + i * 0.1) + 's';
     });
   }
