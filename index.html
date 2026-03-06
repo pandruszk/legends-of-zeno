@@ -364,6 +364,7 @@
   <nav class="viewer-nav" id="viewer-nav">
     <button onclick="viewerPrev()">&larr;</button>
     <button id="viewer-play" onclick="viewerTogglePlay()">&#9654;</button>
+    <button id="viewer-mute" onclick="toggleMute()" title="Mute narration">&#128266;</button>
     <div class="v-dots" id="viewer-dots"></div>
     <div class="v-counter" id="viewer-counter"></div>
     <button onclick="viewerNext()">&rarr;</button>
@@ -612,6 +613,76 @@
   function viewerNext() { viewerGo(viewerCurrent + 1); }
   function viewerPrev() { viewerGo(viewerCurrent - 1); }
 
+  // ===== NARRATION =====
+  let narrationMuted = false;
+  const synth = window.speechSynthesis;
+
+  function stripHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  }
+
+  function getSlideNarration(slide) {
+    switch (slide.type) {
+      case 'title':
+        return `${slide.heading}. ${slide.subheading}`;
+      case 'narrative':
+        return stripHtml(slide.text);
+      case 'agents':
+        return `${slide.heading}. ${slide.subheading}. ` +
+          slide.agents.map(a => `The ${a.name} covers ${a.domain}.`).join(' ');
+      case 'tips':
+        return `${slide.heading}. ${slide.subheading}. ` +
+          slide.tips.map(t => `${t.title}. ${t.text}`).join(' ');
+      case 'cta':
+        return `${slide.heading}. ${slide.subheading}. ` +
+          slide.steps.map(st => `Step ${st.label}: ${st.title}. ${st.text}.`).join(' ');
+      default:
+        return '';
+    }
+  }
+
+  function speakSlide(slide, onEnd) {
+    synth.cancel();
+    if (narrationMuted) { if (onEnd) setTimeout(onEnd, 6000); return; }
+
+    const text = getSlideNarration(slide);
+    if (!text) { if (onEnd) setTimeout(onEnd, 4000); return; }
+
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 0.95;
+    utter.pitch = 0.9;
+
+    // Try to pick a good voice
+    const voices = synth.getVoices();
+    const preferred = voices.find(v => v.name.includes('Daniel')) ||
+                      voices.find(v => v.name.includes('Aaron')) ||
+                      voices.find(v => v.name.includes('Samantha')) ||
+                      voices.find(v => v.lang.startsWith('en') && v.localService);
+    if (preferred) utter.voice = preferred;
+
+    utter.onend = () => { if (onEnd) setTimeout(onEnd, 1500); };
+    utter.onerror = () => { if (onEnd) setTimeout(onEnd, 3000); };
+    synth.speak(utter);
+  }
+
+  function stopNarration() {
+    synth.cancel();
+  }
+
+  function toggleMute() {
+    narrationMuted = !narrationMuted;
+    const btn = document.getElementById('viewer-mute');
+    btn.textContent = narrationMuted ? '\u{1F507}' : '\u{1F50A}';
+    btn.title = narrationMuted ? 'Unmute narration' : 'Mute narration';
+    if (narrationMuted) synth.cancel();
+  }
+
+  // Preload voices
+  synth.getVoices();
+  if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = () => synth.getVoices();
+
   function viewerTogglePlay() {
     if (viewerPlaying) stopViewer(); else startViewer();
   }
@@ -620,27 +691,44 @@
     viewerPlaying = true;
     document.getElementById('viewer-play').innerHTML = '&#9646;&#9646;';
     document.getElementById('viewer-play').classList.add('playing');
-    runViewerProgress();
-    viewerTimer = setInterval(() => {
-      if (viewerCurrent < viewerSlides.length - 1) { viewerNext(); runViewerProgress(); }
-      else stopViewer();
-    }, 8000);
+    narrateAndAdvance();
+  }
+
+  function narrateAndAdvance() {
+    if (!viewerPlaying) return;
+    const slide = viewerSlides[viewerCurrent];
+    const text = getSlideNarration(slide);
+    // Estimate duration: ~130 words per minute for speech, minimum 5s
+    const wordCount = text.split(/\s+/).length;
+    const estimatedMs = narrationMuted ? Math.max(5000, wordCount * 400) : Math.max(5000, (wordCount / 130) * 60000 + 1500);
+    runViewerProgress(estimatedMs);
+
+    speakSlide(slide, () => {
+      if (!viewerPlaying) return;
+      if (viewerCurrent < viewerSlides.length - 1) {
+        viewerNext();
+        narrateAndAdvance();
+      } else {
+        stopViewer();
+      }
+    });
   }
 
   function stopViewer() {
     viewerPlaying = false;
     clearInterval(viewerTimer); viewerTimer = null;
+    stopNarration();
     const btn = document.getElementById('viewer-play');
     if (btn) { btn.innerHTML = '&#9654;'; btn.classList.remove('playing'); }
     const bar = document.getElementById('viewer-progress');
-    if (bar) { bar.style.width = '0'; }
+    if (bar) { bar.style.transition = 'none'; bar.style.width = '0'; }
   }
 
-  function runViewerProgress() {
+  function runViewerProgress(durationMs) {
     const bar = document.getElementById('viewer-progress');
     bar.style.transition = 'none'; bar.style.width = '0';
     requestAnimationFrame(() => requestAnimationFrame(() => {
-      bar.style.transition = 'width 8s linear'; bar.style.width = '100%';
+      bar.style.transition = 'width ' + durationMs + 'ms linear'; bar.style.width = '100%';
     }));
   }
 
