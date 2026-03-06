@@ -74,7 +74,7 @@
       {
         "type": "cta",
         "heading": "Begin Your Legend",
-        "subheading": "Zeno is in beta and available now.",
+        "subheading": "We can't wait to see what you build. Submit your story on the homepage to build the legend of Zeno.",
         "steps": [
           { "label": "I", "title": "Request Access", "text": "#project-zeno-beta on Slack" },
           { "label": "II", "title": "Set Up Account", "text": "Snowflake login + MFA" },
