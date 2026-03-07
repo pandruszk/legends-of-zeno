@@ -630,6 +630,8 @@
     } catch (e) {
       legends = [];
     }
+    const hidden = JSON.parse(localStorage.getItem('zeno-legends-hidden') || '[]');
+    legends = legends.filter(l => !hidden.includes(l.id));
     const custom = JSON.parse(localStorage.getItem('zeno-legends-custom') || '[]');
     custom.forEach(c => { if (!legends.find(l => l.id === c.id)) legends.push(c); });
     renderHome();
@@ -1234,6 +1236,7 @@
         </div>
         <div class="row-actions">
           <button class="btn-sm" onclick="navigate('viewer', {legend: '${l.id}'})">View</button>
+          <button class="btn-sm danger" onclick="deletePublished('${l.id}')">Delete</button>
         </div>
       </div>
     `).join('') : '<div class="empty-state">No published legends yet.</div>';
@@ -1284,6 +1287,15 @@
     if (!confirm('Reject this submission?')) return;
     pendingSubmissions.splice(i, 1);
     localStorage.setItem('zeno-pending', JSON.stringify(pendingSubmissions));
+    renderAdmin();
+  }
+
+  function deletePublished(id) {
+    if (!confirm('Delete this published legend?')) return;
+    legends = legends.filter(l => l.id !== id);
+    localStorage.setItem('zeno-legends-custom', JSON.stringify(legends.filter(l => l.id.startsWith('sub-'))));
+    localStorage.setItem('zeno-legends-hidden', JSON.stringify([...(JSON.parse(localStorage.getItem('zeno-legends-hidden') || '[]')), id]));
+    renderHome();
     renderAdmin();
   }
 
