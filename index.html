@@ -488,7 +488,11 @@
       if (params.autoplay) startViewer();
     }
     if (page === 'reader' && params?.legend) openReader(params.legend);
-    if (page !== 'viewer') stopViewer();
+    if (page !== 'viewer') {
+      stopViewer();
+      preloadedHowls.forEach(h => h.unload());
+      preloadedHowls = [];
+    }
 
     window.scrollTo(0, 0);
   }
@@ -527,6 +531,7 @@
     viewerLegendId = id;
     viewerCurrent = 0;
     viewerSlides = legend.slides;
+    preloadLegendAudio(id, legend.slides.length);
     renderViewer();
   }
 
@@ -614,33 +619,45 @@
   function viewerNext() { viewerGo(viewerCurrent + 1); }
   function viewerPrev() { viewerGo(viewerCurrent - 1); }
 
-  // ===== NARRATION (Howler.js — handles iOS automatically) =====
+  // ===== NARRATION (Howler.js + Web Audio API for iOS) =====
   let narrationMuted = false;
-  let currentHowl = null;
+  let currentHowlId = null;
+  let preloadedHowls = [];
 
   function getAudioPath(legendId, slideIndex) {
     return `audio/${legendId}-${slideIndex}.mp3`;
+  }
+
+  // Preload all audio for a legend into Howl instances (Web Audio API, not html5)
+  function preloadLegendAudio(legendId, slideCount) {
+    preloadedHowls.forEach(h => h.unload());
+    preloadedHowls = [];
+    for (let i = 0; i < slideCount; i++) {
+      preloadedHowls.push(new Howl({
+        src: [getAudioPath(legendId, i)],
+        preload: true,
+        onplayerror: function() {
+          this.once('unlock', () => this.play());
+        }
+      }));
+    }
   }
 
   function speakSlide(legendId, slideIndex, onEnd) {
     stopNarration();
     if (narrationMuted) { if (onEnd) setTimeout(onEnd, 6000); return; }
 
-    currentHowl = new Howl({
-      src: [getAudioPath(legendId, slideIndex)],
-      html5: true,
-      onend: () => { if (onEnd) setTimeout(onEnd, 1200); },
-      onloaderror: () => { if (onEnd) setTimeout(onEnd, 5000); },
-      onplayerror: () => {
-        // Howler auto-unlocks on next tap, then retries
-        currentHowl.once('unlock', () => currentHowl.play());
-      }
-    });
-    currentHowl.play();
+    const howl = preloadedHowls[slideIndex];
+    if (!howl) { if (onEnd) setTimeout(onEnd, 5000); return; }
+
+    howl.off('end').on('end', () => { if (onEnd) setTimeout(onEnd, 1200); });
+    howl.off('loaderror').on('loaderror', () => { if (onEnd) setTimeout(onEnd, 5000); });
+    currentHowlId = howl.play();
   }
 
   function stopNarration() {
-    if (currentHowl) { currentHowl.stop(); currentHowl.unload(); currentHowl = null; }
+    preloadedHowls.forEach(h => h.stop());
+    currentHowlId = null;
   }
 
   function toggleMute() {
@@ -675,10 +692,11 @@
       }
     });
 
-    // Get duration from Howler once loaded for progress bar
-    if (currentHowl) {
+    // Get duration from preloaded Howl for progress bar
+    const howl = preloadedHowls[viewerCurrent];
+    if (howl) {
       const checkDuration = () => {
-        const dur = currentHowl ? currentHowl.duration() : 0;
+        const dur = howl.duration();
         if (dur > 0) { runViewerProgress((dur * 1000) + 1200); }
         else { setTimeout(checkDuration, 100); }
       };
