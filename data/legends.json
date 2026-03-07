@@ -6,6 +6,8 @@
     "author": "Team Data",
     "date": "2026-03-06",
     "status": "published",
+    "audioFile": "audio/the-origin-full.mp3",
+    "slideTimestamps": [0, 8.51, 38.9, 87.26, 127.53],
     "slides": [
       {
         "type": "title",

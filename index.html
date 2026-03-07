@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Legends of Zeno</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
@@ -488,11 +487,7 @@
       if (params.autoplay) startViewer();
     }
     if (page === 'reader' && params?.legend) openReader(params.legend);
-    if (page !== 'viewer') {
-      stopViewer();
-      preloadedHowls.forEach(h => h.unload());
-      preloadedHowls = [];
-    }
+    if (page !== 'viewer') stopViewer();
 
     window.scrollTo(0, 0);
   }
@@ -531,7 +526,6 @@
     viewerLegendId = id;
     viewerCurrent = 0;
     viewerSlides = legend.slides;
-    preloadLegendAudio(id, legend.slides.length);
     renderViewer();
   }
 
@@ -619,45 +613,19 @@
   function viewerNext() { viewerGo(viewerCurrent + 1); }
   function viewerPrev() { viewerGo(viewerCurrent - 1); }
 
-  // ===== NARRATION (Howler.js + Web Audio API for iOS) =====
+  // ===== NARRATION (single audio file, one play() from tap) =====
   let narrationMuted = false;
-  let currentHowlId = null;
-  let preloadedHowls = [];
-
-  function getAudioPath(legendId, slideIndex) {
-    return `audio/${legendId}-${slideIndex}.mp3`;
-  }
-
-  // Preload all audio for a legend into Howl instances (Web Audio API, not html5)
-  function preloadLegendAudio(legendId, slideCount) {
-    preloadedHowls.forEach(h => h.unload());
-    preloadedHowls = [];
-    for (let i = 0; i < slideCount; i++) {
-      preloadedHowls.push(new Howl({
-        src: [getAudioPath(legendId, i)],
-        preload: true,
-        onplayerror: function() {
-          this.once('unlock', () => this.play());
-        }
-      }));
-    }
-  }
-
-  function speakSlide(legendId, slideIndex, onEnd) {
-    stopNarration();
-    if (narrationMuted) { if (onEnd) setTimeout(onEnd, 6000); return; }
-
-    const howl = preloadedHowls[slideIndex];
-    if (!howl) { if (onEnd) setTimeout(onEnd, 5000); return; }
-
-    howl.off('end').on('end', () => { if (onEnd) setTimeout(onEnd, 1200); });
-    howl.off('loaderror').on('loaderror', () => { if (onEnd) setTimeout(onEnd, 5000); });
-    currentHowlId = howl.play();
-  }
+  let narrationAudio = null;  // <audio> element, created once per legend
+  let slideTimestamps = [];
+  let timeUpdateHandler = null;
 
   function stopNarration() {
-    preloadedHowls.forEach(h => h.stop());
-    currentHowlId = null;
+    if (narrationAudio) {
+      narrationAudio.pause();
+      if (timeUpdateHandler) narrationAudio.removeEventListener('timeupdate', timeUpdateHandler);
+      narrationAudio = null;
+      timeUpdateHandler = null;
+    }
   }
 
   function toggleMute() {
@@ -665,7 +633,7 @@
     const btn = document.getElementById('viewer-mute');
     btn.textContent = narrationMuted ? '\u{1F507}' : '\u{1F50A}';
     btn.title = narrationMuted ? 'Unmute narration' : 'Mute narration';
-    if (narrationMuted) stopNarration();
+    if (narrationAudio) narrationAudio.muted = narrationMuted;
   }
 
   function viewerTogglePlay() {
@@ -673,37 +641,48 @@
   }
 
   function startViewer() {
+    const legend = legends.find(l => l.id === viewerLegendId);
+    if (!legend || !legend.audioFile) return;
+
     viewerPlaying = true;
+    viewerCurrent = 0;
+    updateViewer();
     document.getElementById('viewer-play').innerHTML = '&#9646;&#9646;';
     document.getElementById('viewer-play').classList.add('playing');
-    narrateAndAdvance();
-  }
 
-  function narrateAndAdvance() {
-    if (!viewerPlaying) return;
+    slideTimestamps = legend.slideTimestamps || [];
 
-    speakSlide(viewerLegendId, viewerCurrent, () => {
-      if (!viewerPlaying) return;
-      if (viewerCurrent < viewerSlides.length - 1) {
-        viewerNext();
-        narrateAndAdvance();
-      } else {
-        stopViewer();
+    // Create audio element and play SYNCHRONOUSLY in the tap handler
+    stopNarration();
+    narrationAudio = new Audio(legend.audioFile);
+    narrationAudio.muted = narrationMuted;
+
+    // Advance slides based on audio time
+    timeUpdateHandler = () => {
+      if (!viewerPlaying || !narrationAudio) return;
+      const t = narrationAudio.currentTime;
+      // Find which slide we should be on
+      let targetSlide = 0;
+      for (let i = slideTimestamps.length - 1; i >= 0; i--) {
+        if (t >= slideTimestamps[i]) { targetSlide = i; break; }
       }
-    });
+      if (targetSlide !== viewerCurrent) {
+        viewerCurrent = targetSlide;
+        updateViewer();
+      }
+      // Update progress bar
+      if (narrationAudio.duration) {
+        const pct = (t / narrationAudio.duration) * 100;
+        const bar = document.getElementById('viewer-progress');
+        bar.style.transition = 'none';
+        bar.style.width = pct + '%';
+      }
+    };
+    narrationAudio.addEventListener('timeupdate', timeUpdateHandler);
+    narrationAudio.addEventListener('ended', () => { stopViewer(); });
 
-    // Get duration from preloaded Howl for progress bar
-    const howl = preloadedHowls[viewerCurrent];
-    if (howl) {
-      const checkDuration = () => {
-        const dur = howl.duration();
-        if (dur > 0) { runViewerProgress((dur * 1000) + 1200); }
-        else { setTimeout(checkDuration, 100); }
-      };
-      checkDuration();
-    } else {
-      runViewerProgress(6000);
-    }
+    // THIS is the key line — play() called synchronously from user tap
+    narrationAudio.play();
   }
 
   function stopViewer() {
@@ -714,14 +693,6 @@
     if (btn) { btn.innerHTML = '&#9654;'; btn.classList.remove('playing'); }
     const bar = document.getElementById('viewer-progress');
     if (bar) { bar.style.transition = 'none'; bar.style.width = '0'; }
-  }
-
-  function runViewerProgress(durationMs) {
-    const bar = document.getElementById('viewer-progress');
-    bar.style.transition = 'none'; bar.style.width = '0';
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      bar.style.transition = 'width ' + durationMs + 'ms linear'; bar.style.width = '100%';
-    }));
   }
 
   document.addEventListener('keydown', (e) => {
