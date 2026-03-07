@@ -975,7 +975,7 @@
     try {
       const res = await fetch('https://nonlyric-leola-sneeringly.ngrok-free.dev/api/generate-legend', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify({ name, title, story, agent })
       });
 
