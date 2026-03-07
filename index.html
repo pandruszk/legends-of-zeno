@@ -484,7 +484,7 @@
 
     if (page === 'viewer' && params?.legend) {
       openLegend(params.legend);
-      if (params.autoplay) setTimeout(() => startViewer(), 600);
+      if (params.autoplay) startViewer();
     }
     if (page === 'reader' && params?.legend) openReader(params.legend);
     if (page !== 'viewer') stopViewer();
@@ -626,18 +626,8 @@
     return `audio/${legendId}-${slideIndex}.mp3`;
   }
 
-  // Unlock audio on any user tap (needed for iOS)
-  function unlockAudio() {
-    narrationAudio.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAABhgAAAAAAAAAAAAAAAP/7UGQAD/AAADSAAAAAgAADSAAAAARMZEAAAAAAAAAAAAGwBHBER//+f/////+AgABAAAAAmFUXUSTJMl/9v////+IQAAAAAAAAAAP/7UGQeD/AAADSAAAAAgAADSAAAAAAAADSAAAAAAAAA0gAAAAAAAAA//tQZB4P8AAANIAAAACAAANIAAAAAAAANIAAAAAAAADSAAAAAAAAAAAAAAAAf/tQZCAP8AAANIAAAACAAANIAAAAAAAANIAAAAAAAADSAAAAAAAAAAAAAAAAA==';
-    narrationAudio.play().then(() => {
-      narrationAudio.pause();
-      narrationAudio.currentTime = 0;
-    }).catch(() => {});
-    document.removeEventListener('touchstart', unlockAudio);
-    document.removeEventListener('click', unlockAudio);
-  }
-  document.addEventListener('touchstart', unlockAudio, { once: true });
-  document.addEventListener('click', unlockAudio, { once: true });
+  // iOS: no unlock trick needed — we ensure .play() is called
+  // synchronously within the user gesture call stack.
 
   narrationAudio.addEventListener('ended', () => {
     if (narrationOnEnd) { const cb = narrationOnEnd; narrationOnEnd = null; setTimeout(cb, 1200); }
@@ -647,19 +637,20 @@
   });
 
   function speakSlide(legendId, slideIndex, onEnd) {
-    stopNarration();
+    narrationOnEnd = null;
+    narrationAudio.pause();
     if (narrationMuted) { if (onEnd) setTimeout(onEnd, 6000); return; }
 
     narrationOnEnd = onEnd;
     narrationAudio.src = getAudioPath(legendId, slideIndex);
-    narrationAudio.load();
-    narrationAudio.play().catch(() => { if (onEnd) setTimeout(onEnd, 5000); });
+    // Call play() synchronously — do NOT use load() first on iOS
+    const p = narrationAudio.play();
+    if (p) p.catch(() => { if (onEnd) setTimeout(onEnd, 5000); });
   }
 
   function stopNarration() {
     narrationOnEnd = null;
-    narrationAudio.pause();
-    narrationAudio.currentTime = 0;
+    try { narrationAudio.pause(); } catch(e) {}
   }
 
   function toggleMute() {
