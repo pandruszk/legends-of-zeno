@@ -7,16 +7,24 @@
     "date": "2026-03-06",
     "status": "published",
     "audioFile": "audio/the-origin-full.mp3",
-    "slideTimestamps": [0, 8.51, 38.9, 87.26, 127.53],
+    "slideTimestamps": [
+      0,
+      8.45,
+      18.67,
+      29.72,
+      36.55
+    ],
     "slides": [
       {
         "type": "title",
         "heading": "The Origin of Zeno",
-        "subheading": "How a data hero rose from the depths of dashboards to bring the power of answers to all who seek them."
+        "subheading": "How a data hero rose from the depths of dashboards to bring the power of answers to all who seek them.",
+        "narration": "In the digital realm of data and dashboards, a legend was about to unfold\u2014the tale of an oracle who would transform how mortals commune with their information."
       },
       {
         "type": "narrative",
-        "text": "In the age before Zeno, the people of Breezeway wandered in darkness. They had <em>data</em> &mdash; mountains of it &mdash; but to unlock its secrets required arcane rituals: SQL incantations, dashboard quests, and weeks of waiting for the data priests to return with answers.<br><br>Then one day, <em>an oracle emerged</em>. You ask a question in plain English. Zeno translates it into a database query. And you get instant answers &mdash; in seconds, not days."
+        "text": "In the age before Zeno, the people of Breezeway wandered in darkness. They had <em>data</em> &mdash; mountains of it &mdash; but to unlock its secrets required arcane rituals: SQL incantations, dashboard quests, and weeks of waiting for the data priests to return with answers.<br><br>Then one day, <em>an oracle emerged</em>. You ask a question in plain English. Zeno translates it into a database query. And you get instant answers &mdash; in seconds, not days.",
+        "narration": "Before Zeno's awakening, data seekers faced an arduous journey through complex queries and endless waiting, until one fateful day when plain language became the key to instant enlightenment."
       },
       {
         "type": "agents",
@@ -44,7 +52,8 @@
             "domain": "Smart home devices, PMS integrations, public API, webhooks",
             "example": "Which PMS partners have the most active connections?"
           }
-        ]
+        ],
+        "narration": "Three sacred domains await the data seeker, each guarding different realms of knowledge\u2014operations, guest experience, and integrations\u2014where specialized wisdom flows to those who choose their path."
       },
       {
         "type": "tips",
@@ -71,17 +80,31 @@
             "title": "Build on your answers",
             "text": "Follow up to drill deeper. \"Break that down by segment\" works great."
           }
-        ]
+        ],
+        "narration": "The ancient art of inquiry holds great power, where the precision of one's question determines the clarity of the oracle's response."
       },
       {
         "type": "cta",
         "heading": "Begin Your Legend",
         "subheading": "We can't wait to see what you build. Submit your story on the homepage to build the legend of Zeno.",
         "steps": [
-          { "label": "I", "title": "Request Access", "text": "#project-zeno-beta on Slack" },
-          { "label": "II", "title": "Set Up Account", "text": "Snowflake login + MFA" },
-          { "label": "III", "title": "Start Asking", "text": "Pick an agent. Ask a question." }
-        ]
+          {
+            "label": "I",
+            "title": "Request Access",
+            "text": "#project-zeno-beta on Slack"
+          },
+          {
+            "label": "II",
+            "title": "Set Up Account",
+            "text": "Snowflake login + MFA"
+          },
+          {
+            "label": "III",
+            "title": "Start Asking",
+            "text": "Pick an agent. Ask a question."
+          }
+        ],
+        "narration": "Your journey into the realm of instant answers begins now\u2014three sacred steps will unlock the power that transforms questions into revelations."
       }
     ]
   }

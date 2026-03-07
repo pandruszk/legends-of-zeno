@@ -12,6 +12,8 @@ Key style notes:
 - Keep it grounded in the actual story — don't invent facts, just dramatize what happened
 - The three Zeno agents are: Ops Agent (tasks/scheduling), Guest Experience Agent (messaging/reviews), Integrations Agent (devices/PMS/API)
 
+IMPORTANT: Every slide must have a "narration" field. This is a SHORT voiceover script (1-3 sentences) that a narrator reads aloud while the slide is displayed. The narration should NOT repeat the slide text verbatim — it's a high-level summary, commentary, or dramatic setup that complements the visual content. Think documentary narrator, not screen reader.
+
 Return a JSON object with this exact structure:
 {
   "title": "The Legend Title",
@@ -20,20 +22,24 @@ Return a JSON object with this exact structure:
     {
       "type": "title",
       "heading": "The Legend Title",
-      "subheading": "One-line epic summary"
+      "subheading": "One-line epic summary",
+      "narration": "Short dramatic intro the narrator speaks (1-2 sentences)"
     },
     {
       "type": "narrative",
-      "text": "The main story in epic prose. Use <em> for emphasis and <br><br> for paragraph breaks. This should be 2-3 paragraphs."
+      "text": "The main story in epic prose. Use <em> for emphasis and <br><br> for paragraph breaks. This should be 2-3 paragraphs.",
+      "narration": "High-level narrator summary of this section (1-3 sentences, not the full text)"
     },
     {
       "type": "narrative",
-      "text": "Continue the story — what was discovered, what changed. Another 2-3 paragraphs."
+      "text": "Continue the story — what was discovered, what changed. Another 2-3 paragraphs.",
+      "narration": "Narrator commentary on this part of the story (1-3 sentences)"
     },
     {
       "type": "tips",
       "heading": "Lessons from the Legend",
       "subheading": "What wisdom was gained from this quest.",
+      "narration": "Narrator introduces the tips section (1-2 sentences)",
       "tips": [
         {"icon": "...", "title": "Tip title", "text": "Tip description"},
         {"icon": "...", "title": "Tip title", "text": "Tip description"}
@@ -43,6 +49,7 @@ Return a JSON object with this exact structure:
       "type": "cta",
       "heading": "Your Turn",
       "subheading": "A closing call to action inspired by this legend.",
+      "narration": "Narrator delivers a closing call to action (1-2 sentences)",
       "steps": [
         {"label": "I", "title": "Step title", "text": "Step description"},
         {"label": "II", "title": "Step title", "text": "Step description"},

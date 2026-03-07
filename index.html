@@ -302,6 +302,11 @@
   }
   .btn-add-sub-item:hover { border-color: var(--gold); background: rgba(212,168,67,0.05); }
 
+  .narration-field { border-top: 1px solid rgba(139,92,246,0.2); padding-top: 16px; margin-top: 16px; }
+  .narration-field label { color: var(--purple) !important; }
+  .narration-field textarea { border-color: rgba(139,92,246,0.2); }
+  .narration-field textarea:focus { border-color: var(--purple); }
+
   .legend-editor-actions {
     display: flex; gap: 12px; align-items: center; margin-top: 24px;
     flex-wrap: wrap;
@@ -1072,6 +1077,13 @@
             <textarea onchange="try{Object.assign(generatedLegend.slides[${i}],JSON.parse(this.value))}catch(e){}">${esc(JSON.stringify(slide, null, 2))}</textarea></div>`;
       }
 
+      const narrationField = `
+        <div class="form-group narration-field">
+          <label>Narration (voiceover script)</label>
+          <textarea style="min-height:60px" onchange="generatedLegend.slides[${i}].narration=this.value">${esc(slide.narration || '')}</textarea>
+          <div class="help">Short narrator voiceover for this slide — not read verbatim from screen</div>
+        </div>`;
+
       return `
         <div class="gen-slide-card">
           <div class="gen-slide-header">
@@ -1083,6 +1095,7 @@
             </div>
           </div>
           ${fields}
+          ${narrationField}
         </div>`;
     }).join('');
   }

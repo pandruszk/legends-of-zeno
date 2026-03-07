@@ -20,23 +20,21 @@ def strip_html(html):
     return re.sub(r'<[^>]+>', ' ', html).replace('&mdash;', '—').replace('&nbsp;', ' ').replace('  ', ' ').strip()
 
 def get_narration(slide):
+    # Use the narration field if present (short voiceover script)
+    if slide.get("narration"):
+        return slide["narration"]
+    # Fallback for legacy slides without narration
     t = slide.get("type", "")
     if t == "title":
         return f"{slide['heading']}... {slide['subheading']}"
     elif t == "narrative":
         return strip_html(slide["text"])
     elif t == "agents":
-        agents = " ".join(
-            f"The {a['name']}... covers {a['domain']}. For example: {a['example']}"
-            for a in slide["agents"]
-        )
-        return f"{slide['heading']}... {slide['subheading']}... {agents}"
+        return f"{slide['heading']}... {slide['subheading']}"
     elif t == "tips":
-        tips = " ".join(f"{t['title']}... {t['text']}" for t in slide["tips"])
-        return f"{slide['heading']}... {slide['subheading']}... {tips}"
+        return f"{slide['heading']}... {slide['subheading']}"
     elif t == "cta":
-        steps = " ".join(f"Step {s['label']}... {s['title']}. {s['text']}." for s in slide["steps"])
-        return f"{slide['heading']}... {slide['subheading']}... {steps}"
+        return f"{slide['heading']}... {slide['subheading']}"
     return ""
 
 def generate_audio(text, output_path):
