@@ -614,30 +614,52 @@
   function viewerPrev() { viewerGo(viewerCurrent - 1); }
 
   // ===== NARRATION =====
+  // iOS Safari requires audio to be initiated from a user gesture.
+  // We use a single persistent Audio element, "unlocked" on the first tap,
+  // then swap its src for each slide so playback stays authorized.
   let narrationMuted = false;
-  let narrationAudio = null;
+  const narrationAudio = new Audio();
+  narrationAudio.preload = 'auto';
+  let narrationOnEnd = null;
 
   function getAudioPath(legendId, slideIndex) {
     return `audio/${legendId}-${slideIndex}.mp3`;
   }
 
+  // Unlock audio on any user tap (needed for iOS)
+  function unlockAudio() {
+    narrationAudio.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAABhgAAAAAAAAAAAAAAAP/7UGQAD/AAADSAAAAAgAADSAAAAARMZEAAAAAAAAAAAAGwBHBER//+f/////+AgABAAAAAmFUXUSTJMl/9v////+IQAAAAAAAAAAP/7UGQeD/AAADSAAAAAgAADSAAAAAAAADSAAAAAAAAA0gAAAAAAAAA//tQZB4P8AAANIAAAACAAANIAAAAAAAANIAAAAAAAADSAAAAAAAAAAAAAAAAf/tQZCAP8AAANIAAAACAAANIAAAAAAAANIAAAAAAAADSAAAAAAAAAAAAAAAAA==';
+    narrationAudio.play().then(() => {
+      narrationAudio.pause();
+      narrationAudio.currentTime = 0;
+    }).catch(() => {});
+    document.removeEventListener('touchstart', unlockAudio);
+    document.removeEventListener('click', unlockAudio);
+  }
+  document.addEventListener('touchstart', unlockAudio, { once: true });
+  document.addEventListener('click', unlockAudio, { once: true });
+
+  narrationAudio.addEventListener('ended', () => {
+    if (narrationOnEnd) { const cb = narrationOnEnd; narrationOnEnd = null; setTimeout(cb, 1200); }
+  });
+  narrationAudio.addEventListener('error', () => {
+    if (narrationOnEnd) { const cb = narrationOnEnd; narrationOnEnd = null; setTimeout(cb, 5000); }
+  });
+
   function speakSlide(legendId, slideIndex, onEnd) {
     stopNarration();
     if (narrationMuted) { if (onEnd) setTimeout(onEnd, 6000); return; }
 
-    const src = getAudioPath(legendId, slideIndex);
-    narrationAudio = new Audio(src);
-    narrationAudio.onended = () => { if (onEnd) setTimeout(onEnd, 1200); };
-    narrationAudio.onerror = () => { if (onEnd) setTimeout(onEnd, 5000); };
+    narrationOnEnd = onEnd;
+    narrationAudio.src = getAudioPath(legendId, slideIndex);
+    narrationAudio.load();
     narrationAudio.play().catch(() => { if (onEnd) setTimeout(onEnd, 5000); });
   }
 
   function stopNarration() {
-    if (narrationAudio) {
-      narrationAudio.pause();
-      narrationAudio.currentTime = 0;
-      narrationAudio = null;
-    }
+    narrationOnEnd = null;
+    narrationAudio.pause();
+    narrationAudio.currentTime = 0;
   }
 
   function toggleMute() {
@@ -662,16 +684,13 @@
   function narrateAndAdvance() {
     if (!viewerPlaying) return;
 
-    // Preload audio to get duration for progress bar
-    const src = getAudioPath(viewerLegendId, viewerCurrent);
-    const probe = new Audio(src);
-    probe.addEventListener('loadedmetadata', () => {
-      const durationMs = (probe.duration * 1000) + 1200;
+    // Use the narration audio's loadedmetadata to get duration for progress bar
+    const onMeta = () => {
+      narrationAudio.removeEventListener('loadedmetadata', onMeta);
+      const durationMs = (narrationAudio.duration * 1000) + 1200;
       runViewerProgress(durationMs);
-    });
-    probe.addEventListener('error', () => {
-      runViewerProgress(6000);
-    });
+    };
+    narrationAudio.addEventListener('loadedmetadata', onMeta);
 
     speakSlide(viewerLegendId, viewerCurrent, () => {
       if (!viewerPlaying) return;
