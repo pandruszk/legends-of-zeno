@@ -973,7 +973,7 @@
     goToStep('loading');
 
     try {
-      const res = await fetch('http://localhost:8000/api/generate-legend', {
+      const res = await fetch('https://nonlyric-leola-sneeringly.ngrok-free.dev/api/generate-legend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, title, story, agent })
