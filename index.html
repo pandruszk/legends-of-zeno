@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Legends of Zeno</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
@@ -613,44 +614,33 @@
   function viewerNext() { viewerGo(viewerCurrent + 1); }
   function viewerPrev() { viewerGo(viewerCurrent - 1); }
 
-  // ===== NARRATION =====
-  // iOS Safari requires audio to be initiated from a user gesture.
-  // We use a single persistent Audio element, "unlocked" on the first tap,
-  // then swap its src for each slide so playback stays authorized.
+  // ===== NARRATION (Howler.js — handles iOS automatically) =====
   let narrationMuted = false;
-  const narrationAudio = new Audio();
-  narrationAudio.preload = 'auto';
-  let narrationOnEnd = null;
+  let currentHowl = null;
 
   function getAudioPath(legendId, slideIndex) {
     return `audio/${legendId}-${slideIndex}.mp3`;
   }
 
-  // iOS: no unlock trick needed — we ensure .play() is called
-  // synchronously within the user gesture call stack.
-
-  narrationAudio.addEventListener('ended', () => {
-    if (narrationOnEnd) { const cb = narrationOnEnd; narrationOnEnd = null; setTimeout(cb, 1200); }
-  });
-  narrationAudio.addEventListener('error', () => {
-    if (narrationOnEnd) { const cb = narrationOnEnd; narrationOnEnd = null; setTimeout(cb, 5000); }
-  });
-
   function speakSlide(legendId, slideIndex, onEnd) {
-    narrationOnEnd = null;
-    narrationAudio.pause();
+    stopNarration();
     if (narrationMuted) { if (onEnd) setTimeout(onEnd, 6000); return; }
 
-    narrationOnEnd = onEnd;
-    narrationAudio.src = getAudioPath(legendId, slideIndex);
-    // Call play() synchronously — do NOT use load() first on iOS
-    const p = narrationAudio.play();
-    if (p) p.catch(() => { if (onEnd) setTimeout(onEnd, 5000); });
+    currentHowl = new Howl({
+      src: [getAudioPath(legendId, slideIndex)],
+      html5: true,
+      onend: () => { if (onEnd) setTimeout(onEnd, 1200); },
+      onloaderror: () => { if (onEnd) setTimeout(onEnd, 5000); },
+      onplayerror: () => {
+        // Howler auto-unlocks on next tap, then retries
+        currentHowl.once('unlock', () => currentHowl.play());
+      }
+    });
+    currentHowl.play();
   }
 
   function stopNarration() {
-    narrationOnEnd = null;
-    try { narrationAudio.pause(); } catch(e) {}
+    if (currentHowl) { currentHowl.stop(); currentHowl.unload(); currentHowl = null; }
   }
 
   function toggleMute() {
@@ -675,14 +665,6 @@
   function narrateAndAdvance() {
     if (!viewerPlaying) return;
 
-    // Use the narration audio's loadedmetadata to get duration for progress bar
-    const onMeta = () => {
-      narrationAudio.removeEventListener('loadedmetadata', onMeta);
-      const durationMs = (narrationAudio.duration * 1000) + 1200;
-      runViewerProgress(durationMs);
-    };
-    narrationAudio.addEventListener('loadedmetadata', onMeta);
-
     speakSlide(viewerLegendId, viewerCurrent, () => {
       if (!viewerPlaying) return;
       if (viewerCurrent < viewerSlides.length - 1) {
@@ -692,6 +674,18 @@
         stopViewer();
       }
     });
+
+    // Get duration from Howler once loaded for progress bar
+    if (currentHowl) {
+      const checkDuration = () => {
+        const dur = currentHowl ? currentHowl.duration() : 0;
+        if (dur > 0) { runViewerProgress((dur * 1000) + 1200); }
+        else { setTimeout(checkDuration, 100); }
+      };
+      checkDuration();
+    } else {
+      runViewerProgress(6000);
+    }
   }
 
   function stopViewer() {
