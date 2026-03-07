@@ -644,45 +644,49 @@
     const legend = legends.find(l => l.id === viewerLegendId);
     if (!legend || !legend.audioFile) return;
 
-    viewerPlaying = true;
-    viewerCurrent = 0;
-    updateViewer();
-    document.getElementById('viewer-play').innerHTML = '&#9646;&#9646;';
-    document.getElementById('viewer-play').classList.add('playing');
+      viewerPlaying = true;
+      viewerCurrent = 0;
+      updateViewer();
+      document.getElementById('viewer-play').innerHTML = '&#9646;&#9646;';
+      document.getElementById('viewer-play').classList.add('playing');
 
-    slideTimestamps = legend.slideTimestamps || [];
+      slideTimestamps = legend.slideTimestamps || [];
 
-    // Create audio element and play SYNCHRONOUSLY in the tap handler
-    stopNarration();
-    narrationAudio = new Audio(legend.audioFile);
-    narrationAudio.muted = narrationMuted;
+      stopNarration();
+      narrationAudio = document.createElement('audio');
+      narrationAudio.setAttribute('playsinline', '');
+      narrationAudio.setAttribute('webkit-playsinline', '');
+      var src = document.createElement('source');
+      src.src = legend.audioFile;
+      src.type = 'audio/mpeg';
+      narrationAudio.appendChild(src);
+      narrationAudio.muted = narrationMuted;
+      narrationAudio.load();
 
-    // Advance slides based on audio time
-    timeUpdateHandler = () => {
-      if (!viewerPlaying || !narrationAudio) return;
-      const t = narrationAudio.currentTime;
-      // Find which slide we should be on
-      let targetSlide = 0;
-      for (let i = slideTimestamps.length - 1; i >= 0; i--) {
-        if (t >= slideTimestamps[i]) { targetSlide = i; break; }
-      }
-      if (targetSlide !== viewerCurrent) {
-        viewerCurrent = targetSlide;
-        updateViewer();
-      }
-      // Update progress bar
-      if (narrationAudio.duration) {
-        const pct = (t / narrationAudio.duration) * 100;
-        const bar = document.getElementById('viewer-progress');
-        bar.style.transition = 'none';
-        bar.style.width = pct + '%';
-      }
-    };
-    narrationAudio.addEventListener('timeupdate', timeUpdateHandler);
-    narrationAudio.addEventListener('ended', () => { stopViewer(); });
+      timeUpdateHandler = () => {
+        if (!viewerPlaying || !narrationAudio) return;
+        const t = narrationAudio.currentTime;
+        let targetSlide = 0;
+        for (let i = slideTimestamps.length - 1; i >= 0; i--) {
+          if (t >= slideTimestamps[i]) { targetSlide = i; break; }
+        }
+        if (targetSlide !== viewerCurrent) {
+          viewerCurrent = targetSlide;
+          updateViewer();
+        }
+        if (narrationAudio.duration) {
+          const pct = (t / narrationAudio.duration) * 100;
+          const bar = document.getElementById('viewer-progress');
+          bar.style.transition = 'none';
+          bar.style.width = pct + '%';
+        }
+      };
+      narrationAudio.addEventListener('timeupdate', timeUpdateHandler);
+      narrationAudio.addEventListener('ended', () => { stopViewer(); });
 
-    // THIS is the key line — play() called synchronously from user tap
-    narrationAudio.play();
+      narrationAudio.play().catch(err => {
+        console.error('Audio play failed:', err);
+      });
   }
 
   function stopViewer() {
