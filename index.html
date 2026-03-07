@@ -466,6 +466,8 @@
     } catch (e) {
       legends = [];
     }
+    const custom = JSON.parse(localStorage.getItem('zeno-legends-custom') || '[]');
+    custom.forEach(c => { if (!legends.find(l => l.id === c.id)) legends.push(c); });
     renderHome();
     renderAdmin();
   }
@@ -835,8 +837,28 @@
   }
 
   function approvePending(i) {
+    if (!confirm('Approve and publish this submission?')) return;
     const sub = pendingSubmissions[i];
-    alert('To publish this legend, create it in the New Legend editor and add it to data/legends.json in the repo.\n\nSubmission by: ' + sub.name + '\nTitle: ' + sub.title + '\n\nStory:\n' + sub.story);
+    const legend = {
+      id: sub.id,
+      title: sub.title,
+      subtitle: '',
+      author: sub.name,
+      date: sub.date,
+      status: 'published',
+      audioFile: null,
+      slideTimestamps: [],
+      slides: [
+        { type: 'title', heading: sub.title, subheading: 'A legend by ' + sub.name },
+        { type: 'narrative', text: sub.story.replace(/\n/g, '<br>') }
+      ]
+    };
+    legends.push(legend);
+    localStorage.setItem('zeno-legends-custom', JSON.stringify(legends.filter(l => l.id.startsWith('sub-'))));
+    pendingSubmissions.splice(i, 1);
+    localStorage.setItem('zeno-pending', JSON.stringify(pendingSubmissions));
+    renderHome();
+    renderAdmin();
   }
 
   function rejectPending(i) {
