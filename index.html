@@ -484,7 +484,7 @@
 
     if (page === 'viewer' && params?.legend) {
       openLegend(params.legend);
-      if (params.autoplay) startViewer();
+      // autoplay removed — iOS Safari blocks play() outside direct tap handlers
     }
     if (page === 'reader' && params?.legend) openReader(params.legend);
     if (page !== 'viewer') stopViewer();
