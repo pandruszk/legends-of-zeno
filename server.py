@@ -1,4 +1,3 @@
-import os
 import json
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import anthropic
@@ -58,21 +57,39 @@ Return ONLY the JSON object, no markdown fencing or extra text."""
 
 client = anthropic.Anthropic()
 
+CORS_HEADERS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, ngrok-skip-browser-warning',
+}
+
 
 class Handler(SimpleHTTPRequestHandler):
+    def send_cors_headers(self):
+        for key, val in CORS_HEADERS.items():
+            self.send_header(key, val)
+
+    def end_headers(self):
+        self.send_cors_headers()
+        super().end_headers()
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.end_headers()
+
     def do_POST(self):
         if self.path == '/api/generate-legend':
-            length = int(self.headers['Content-Length'])
-            body = json.loads(self.rfile.read(length))
-
-            name = body.get('name', '')
-            title = body.get('title', '')
-            story = body.get('story', '')
-            agent = body.get('agent', '')
-
-            user_msg = f"Author: {name}\nSuggested Title: {title}\nAgent Used: {agent or 'not specified'}\n\nRaw Story:\n{story}"
-
             try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = json.loads(self.rfile.read(length))
+
+                name = body.get('name', '')
+                title = body.get('title', '')
+                story = body.get('story', '')
+                agent = body.get('agent', '')
+
+                user_msg = f"Author: {name}\nSuggested Title: {title}\nAgent Used: {agent or 'not specified'}\n\nRaw Story:\n{story}"
+
                 message = client.messages.create(
                     model="claude-sonnet-4-20250514",
                     max_tokens=4096,
@@ -85,7 +102,6 @@ class Handler(SimpleHTTPRequestHandler):
 
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 self.wfile.write(json.dumps(legend_data).encode())
 
@@ -97,13 +113,6 @@ class Handler(SimpleHTTPRequestHandler):
         else:
             self.send_response(404)
             self.end_headers()
-
-    def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()
 
 
 if __name__ == '__main__':
